@@ -8,49 +8,26 @@ class PhysicsController {
     let links = this.network.links;
     let selected = this.network.getSelectedNode();
 
-    if (selected) {
-      selected.x = lerp(selected.x, width / 2, 0.03);
-      selected.y = lerp(selected.y, height / 2, 0.03);
-      selected.vx = 0; 
-      selected.vy = 0;
+    if (selected && !this.network.getDragging()) {
+      let transform = selected.getComponent(TransformComponent);
+      if (transform) {
+        transform.x = lerp(transform.x, width / 2, 0.03);
+        transform.y = lerp(transform.y, height / 2, 0.03);
+        transform.vx = 0; 
+        transform.vy = 0;
+      }
     }
+    
 
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        let n1 = nodes[i];
-        let n2 = nodes[j];
-        
-        let dx = n2.x - n1.x;
-        let dy = n2.y - n1.y;
-        let d = dist(n1.x, n1.y, n2.x, n2.y);
-        
-        let minDist = n1.tamanho + n2.tamanho;
+        let node_1 = nodes[i];
+        let node_2 = nodes[j];
 
-        if (d < minDist && d > 0) {
-          let overlap = minDist - d;
-          let nx = dx / d;
-          let ny = dy / d;
-          
-          if (n1 === selected) {
-            n2.x += nx * overlap;
-            n2.y += ny * overlap;
-          } else if (n2 === selected) {
-            n1.x -= nx * overlap;
-            n1.y -= ny * overlap;
-          } else {
-            n1.x -= nx * overlap * 0.5;
-            n1.y -= ny * overlap * 0.5;
-            n2.x += nx * overlap * 0.5;
-            n2.y += ny * overlap * 0.5;
-          }
-        } 
-        else if (d < minDist + 40) {
-          let repulseForce = (minDist + 40 - d) * 0.02;
-          let fX = (dx / d) * repulseForce;
-          let fY = (dy / d) * repulseForce;
-          
-          if (n1 !== selected) { n1.vx -= fX; n1.vy -= fY; }
-          if (n2 !== selected) { n2.vx += fX; n2.vy += fY; }
+        const collision1 = node_1.getComponent(CollisionComponent);
+        const collision2 = node_2.getComponent(CollisionComponent);
+        if (collision1 && collision2) {
+          collision1.resolveAgainst(node_2, selected);
         }
       }
     }

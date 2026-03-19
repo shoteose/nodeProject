@@ -11,8 +11,16 @@
     <script src="https://unpkg.com/ml5@1/dist/ml5.js"></script>
 
     <!-- Interfaces -->
+    <script src="js/Interfaces/IComponent.js"></script>
     <script src="js/Interfaces/INode.js"></script>
     <script src="js/Interfaces/ILink.js"></script>
+
+    <!-- Components -->
+    <script src="js/Components/TransformComponent.js"></script>
+    <script src="js/Components/PhysicsComponent.js"></script>
+    <script src="js/Components/RenderComponent.js"></script>
+    <script src="js/Components/ClickableComponent.js"></script>
+    <script src="js/Components/CollisionComponent.js"></script>
     
     <!-- Models -->
     <script src="js/Models/StandardNode.js"></script>
@@ -25,13 +33,30 @@
     <script src="js/Controllers/PhysicsController.js"></script>
     <script src="js/Controllers/RenderController.js"></script>
     <script src="js/Controllers/InteractionController.js"></script>
+
+    <!-- UI Manager -->
+    <script src="js/Managers/UIManager.js"></script>
     
     <script src="js/Main.js"></script>
 </head>
 
 <body>
-    <main>
-    </main>
+    <button id="sidebar-toggle" class="fixed-toggle" onclick="uiManager.toggleSidebar()">Hide Info</button>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div id="selected-node-info">No node selected</div>
+
+            <h2>Connections</h2>
+            <button id="btn-save" onclick="saveConnections()">Save connections</button>
+            <button id="btn-load" onclick="loadConnections()">Load connections</button>
+
+            <div id="connection-status" class="status">No action yet</div>
+        </aside>
+
+        <main class="game-area">
+            <!-- p5 canvas -->
+        </main>
+    </div>
 </body>
 
 </html>
