@@ -27,7 +27,7 @@ class PhysicsController {
         const collision1 = node_1.getComponent(CollisionComponent);
         const collision2 = node_2.getComponent(CollisionComponent);
         if (collision1 && collision2) {
-          collision1.resolveAgainst(node_2, selected);
+          collision1.resolveAgainst(node_1, node_2, selected);
         }
       }
     }

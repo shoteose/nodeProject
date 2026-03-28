@@ -3,7 +3,15 @@ class RenderController {
     background(30);
   }
 
-  drawNode(renderComponent, transformComponent, isSelected) {
+  drawNode(renderComponent, transformComponent, isSelected, isLinkTarget = false) {
+    // Draw glow effect for link target
+    if (isLinkTarget) {
+      noFill();
+      stroke('#f39c12');
+      strokeWeight(8);
+      circle(transformComponent.x, transformComponent.y, renderComponent.tamanho * 2 + 10);
+    }
+    
     stroke(255);
     strokeWeight(2);
     if (isSelected) {
@@ -26,5 +34,15 @@ class RenderController {
     stroke(link.cor);
     strokeWeight(2);
     line(sourceTransform.x, sourceTransform.y, targetTransform.x, targetTransform.y);
+  }
+
+  drawLinkPreview(startNode, mouseX, mouseY) {
+    if (!startNode) return;
+    const transform = startNode.getComponent(TransformComponent);
+    if (!transform) return;
+
+    stroke('#f39c12');
+    strokeWeight(3);
+    line(transform.x, transform.y, mouseX, mouseY);
   }
 }

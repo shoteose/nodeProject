@@ -6,10 +6,10 @@ class RenderComponent extends IComponent {
     this.cor = cor;
   }
 
-  draw(renderer, isSelected) {
+  draw(renderer, isSelected, isLinkTarget = false) {
     let transform = this.entity.getComponent(TransformComponent);
     if (transform) {
-      renderer.drawNode(this, transform, isSelected);
+      renderer.drawNode(this, transform, isSelected, isLinkTarget);
     }
   }
 }

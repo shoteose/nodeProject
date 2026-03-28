@@ -1,3 +1,8 @@
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
 .app-container {
   display: flex;
   height: 100vh;
@@ -51,10 +56,20 @@
   color: #bdc3c7;
 }
 
+.instructions {
+  font-size: 0.9em;
+  color: #ecf0f1;
+}
+
+.instructions p {
+  margin: 4px 0;
+}
+
 .game-area {
   flex: 1;
   position: relative;
-  min-height: 100vh;
+  background: #222;
+  overflow: hidden;
 }
 
 .fixed-toggle {
@@ -76,6 +91,10 @@
 
 canvas {
   display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  z-index: 10;
 }

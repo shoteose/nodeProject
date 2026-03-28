@@ -1,33 +1,13 @@
-class IEntity {
-  constructor(id) {
-    if (this.constructor === IEntity) throw new Error("IEntity é uma interface/classe abstrata.");
+class INode {
+  constructor(id, name) {
+    if (this.constructor === INode) throw new Error("INode é uma interface/classe abstrata.");
     this.id = id;
-    this.components = new Map();
+    this.name = name;
   }
 
-  addComponent(component) {
-    this.components.set(component.constructor.name, component);
-    component.entity = this;
-  }
-
-  getComponent(componentClass) {
-    return this.components.get(componentClass.name);
-  }
-
-  hasComponent(componentClass) {
-    return this.components.has(componentClass.name);
-  }
-
-  update() {
-    for (let component of this.components.values()) {
-      if (component.update) component.update();
-    }
-  }
-
-  draw(renderer, isSelected = false) {
-    for (let component of this.components.values()) {
-      if (component.draw) component.draw(renderer, isSelected);
-    }
-  }
+  // Abstract methods that concrete node classes should implement
+  update() { throw new Error("Método update() tem de ser implementado."); }
+  draw(renderer, isSelected) { throw new Error("Método draw() tem de ser implementado."); }
+  contains(x, y) { throw new Error("Método contains() tem de ser implementado."); }
 }
 

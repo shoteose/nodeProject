@@ -11,6 +11,12 @@ class UIManager {
     this.sidebar.classList.toggle(this.hideClass);
     const isHidden = this.sidebar.classList.contains(this.hideClass);
     this.toggleButton.textContent = isHidden ? 'Show Info' : 'Hide Info';
+    // Update canvas position after layout change
+    setTimeout(() => {
+      if (typeof updateCanvasPosition === 'function') {
+        updateCanvasPosition();
+      }
+    }, 0);
   }
 
   setConnectionStatus(message) {
@@ -33,8 +39,9 @@ class UIManager {
     if (now - lastNodeInfoUpdateAt < nodeInfoUpdateInterval) return;
 
     const active = document.activeElement;
-    if (active && ['node-name', 'node-pos-x', 'node-pos-y', 'node-vx', 'node-vy', 'node-size'].includes(active.id)) {
-      return;
+    if (active && ['node-name', 'node-pos-x', 'node-pos-y', 'node-vx', 'node-vy', 'node-size', 'node-color'].includes(active.id)) {
+   
+      if (active.id !== 'node-color') return;
     }
 
     const transform = selected.getComponent(TransformComponent);
@@ -66,6 +73,7 @@ class UIManager {
     display.innerHTML = `
       <div><strong>ID:</strong> ${selected.id}</div>
       <div><strong>Nome:</strong> <input id="node-name" value="${renderComp ? renderComp.nome : ''}" oninput="setSelectedNodeName(this.value)"></div>
+      <div><strong>Cor:</strong> <input id="node-color" type="color" value="${renderComp ? renderComp.cor : '#3498db'}" onchange="setSelectedNodeColor(this.value)"></div>
       <div>
         <strong>Posição X:</strong> 
         <input id="node-pos-x" type="number" value="${transform ? transform.x.toFixed(1) : 0}" step="0.1" onchange="setSelectedNodePosition(parseFloat(this.value), parseFloat(document.getElementById('node-pos-y').value))"> 

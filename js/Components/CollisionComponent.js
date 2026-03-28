@@ -3,11 +3,12 @@ class CollisionComponent extends IComponent {
     super();
   }
 
-  resolveAgainst(other, selectedNode) {
-    const t1 = this.entity.getComponent(TransformComponent);
-    const r1 = this.entity.getComponent(RenderComponent);
-    const t2 = other.getComponent(TransformComponent);
-    const r2 = other.getComponent(RenderComponent);
+
+  resolveAgainst(entity1, entity2, selectedNode) {
+    const t1 = entity1.getComponent(TransformComponent);
+    const r1 = entity1.getComponent(RenderComponent);
+    const t2 = entity2.getComponent(TransformComponent);
+    const r2 = entity2.getComponent(RenderComponent);
 
     if (!t1 || !r1 || !t2 || !r2) return;
 
@@ -23,10 +24,10 @@ class CollisionComponent extends IComponent {
       let nx = dx / distance;
       let ny = dy / distance;
 
-      if (this.entity === selectedNode) {
+      if (entity1 === selectedNode) {
         t2.x += nx * overlap;
         t2.y += ny * overlap;
-      } else if (other === selectedNode) {
+      } else if (entity2 === selectedNode) {
         t1.x -= nx * overlap;
         t1.y -= ny * overlap;
       } else {
@@ -44,11 +45,11 @@ class CollisionComponent extends IComponent {
       let forceX = (dx / distance) * repulseForce;
       let forceY = (dy / distance) * repulseForce;
 
-      if (this.entity !== selectedNode) {
+      if (entity1 !== selectedNode) {
         t1.vx -= forceX;
         t1.vy -= forceY;
       }
-      if (other !== selectedNode) {
+      if (entity2 !== selectedNode) {
         t2.vx += forceX;
         t2.vy += forceY;
       }
