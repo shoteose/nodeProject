@@ -7,28 +7,42 @@ class SpringLink extends ILink {
   }
 
   applyForce(selectedNode) {
-    let dx = this.target.x - this.source.x;
-    let dy = this.target.y - this.source.y;
-    let distanceToTarget = dist(this.source.x, this.source.y, this.target.x, this.target.y);
-    
-    if (distanceToTarget === 0) return;
+    let sourceTransform = this.source.getComponent(TransformComponent);
+    let targetTransform = this.target.getComponent(TransformComponent);
+
+    if (!sourceTransform || !targetTransform) {
+      return;
+    }
+
+    let dx = targetTransform.x - sourceTransform.x;
+    let dy = targetTransform.y - sourceTransform.y;
+    let distanceToTarget = dist(sourceTransform.x, sourceTransform.y, targetTransform.x, targetTransform.y);
+
+    if (distanceToTarget === 0) {
+      return;
+    }
 
     let difference = distanceToTarget - this.distancia;
-    let forceMagnitude = difference * this.forca * 0.05; 
+    let forceMagnitude = difference * this.forca * 0.05;
     let fx = (dx / distanceToTarget) * forceMagnitude;
     let fy = (dy / distanceToTarget) * forceMagnitude;
 
     if (selectedNode !== this.source) {
-      this.source.vx += fx;
-      this.source.vy += fy;
+      sourceTransform.vx += fx;
+      sourceTransform.vy += fy;
     }
     if (selectedNode !== this.target) {
-      this.target.vx -= fx;
-      this.target.vy -= fy;
+      targetTransform.vx -= fx;
+      targetTransform.vy -= fy;
     }
   }
 
   draw(renderer) {
-    renderer.drawLink(this);
+    let sourceTransform = this.source.getComponent(TransformComponent);
+    let targetTransform = this.target.getComponent(TransformComponent);
+
+    if (sourceTransform && targetTransform) {
+      renderer.drawLink(this, sourceTransform, targetTransform);
+    }
   }
 }
