@@ -5,44 +5,57 @@ class NetworkManager {
     this.links = [];
     this.selectedNode = null;
     this.isDragging = false;
+    this.friction = 0.15;
   }
 
-  addNode(node) { 
+  addNode(node) {
     console.log("addNode called with node:", node.id);
-    this.nodes.push(node); 
+    this.nodes.push(node);
     console.log("Total nodes now:", this.nodes.length);
   }
-  
-  addLink(link) { 
+
+  removeNode(nodeToRemove) {
+    if (!nodeToRemove) return;
+
+    this.links = this.links.filter(link => link.source !== nodeToRemove && link.target !== nodeToRemove);
+
+    this.nodes = this.nodes.filter(n => n !== nodeToRemove);
+
+    if (this.selectedNode === nodeToRemove) {
+      this.selectedNode = null;
+    }
+  }
+
+  addLink(link) {
     console.log("addLink called between:", link.source.id, "and", link.target.id);
-    this.links.push(link); 
+    this.links.push(link);
     console.log("Total links now:", this.links.length);
   }
-  
-  getNodeById(id) { 
+
+  getNodeById(id) {
     const node = this.nodes.find(n => n.id === id);
     console.log("getNodeById called for id:", id, "found:", node ? node.id : "null");
     return node;
   }
-  
-  setSelectedNode(node) { 
+
+  setSelectedNode(node) {
     console.log("setSelectedNode called with:", node ? node.id : "null");
-    this.selectedNode = node; 
-  }
-  
-  getSelectedNode() { 
-    //console.log("getSelectedNode called, returning:", this.selectedNode ? this.selectedNode.id : "null");
-    return this.selectedNode; 
+    this.selectedNode = node;
   }
 
-  setDragging(isDragging) { 
-    console.log("setDragging called with:", isDragging);
-    this.isDragging = isDragging; 
+  getSelectedNode() {
+    //console.log("getSelectedNode called, returning:", this.selectedNode ? this.selectedNode.id : "null");
+    return this.selectedNode;
   }
-  
-  getDragging() { 
+
+  setDragging(isDragging) {
+    console.log("setDragging called with:", isDragging);
+    this.isDragging = isDragging;
+  }
+
+  getDragging() {
     console.log("getDragging called, returning:", this.isDragging);
-    return this.isDragging; 
+    return this.isDragging;
   }
 }
 

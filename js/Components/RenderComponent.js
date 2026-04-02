@@ -2,7 +2,7 @@ class RenderComponent extends IComponent {
   constructor(nome, tamanho, cor) {
     super();
     this.nome = nome;
-    this.tamanho = tamanho * 1.5;
+    this.tamanho = tamanho;
     this.cor = cor;
   }
 

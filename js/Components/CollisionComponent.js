@@ -3,7 +3,6 @@ class CollisionComponent extends IComponent {
     super();
   }
 
-
   resolveAgainst(entity1, entity2, selectedNode) {
     const t1 = entity1.getComponent(TransformComponent);
     const r1 = entity1.getComponent(RenderComponent);

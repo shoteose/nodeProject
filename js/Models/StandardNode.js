@@ -12,5 +12,9 @@ class StandardNode extends IEntity {
     let clickable = this.getComponent(ClickableComponent);
     return clickable ? clickable.contains(px, py) : false;
   }
+
+  toString() {
+    return `StandardNode(id: ${this.id}, name: ${this.getComponent(RenderComponent).name})`;
+  }
 }
 

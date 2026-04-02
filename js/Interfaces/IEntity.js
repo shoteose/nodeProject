@@ -18,9 +18,9 @@ class IEntity {
     return this.components.has(componentClass.name);
   }
 
-  update() {
+  update(...args) {
     for (let component of this.components.values()) {
-      if (component.update) component.update();
+      if (component.update) component.update(...args);
     }
   }
 

@@ -5,67 +5,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NodeProject</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <script src="p5/p5.js"></script>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+
+    <script src="p5/p5.js"></script>
     <script src="https://unpkg.com/ml5@1/dist/ml5.js"></script>
 
-    <!-- Interfaces -->
     <script src="js/Interfaces/IComponent.js"></script>
     <script src="js/Interfaces/IEntity.js"></script>
     <script src="js/Interfaces/ILink.js"></script>
 
-    <!-- Components -->
     <script src="js/Components/TransformComponent.js"></script>
     <script src="js/Components/PhysicsComponent.js"></script>
     <script src="js/Components/RenderComponent.js"></script>
     <script src="js/Components/ClickableComponent.js"></script>
     <script src="js/Components/CollisionComponent.js"></script>
-    
-    <!-- Models -->
+
     <script src="js/Models/StandardNode.js"></script>
     <script src="js/Models/SpringLink.js"></script>
-    
-    <!-- Managers -->
-    <script src="js/Managers/NetworkManager.js"></script>
 
-    <!-- Controllers -->
+    <script src="js/Managers/NetworkManager.js"></script>
+    <script src="js/Managers/NetworkSerializer.js"></script>
+    <script src="js/Managers/UIManager.js"></script>
+
     <script src="js/Controllers/PhysicsController.js"></script>
     <script src="js/Controllers/RenderController.js"></script>
     <script src="js/Controllers/InteractionController.js"></script>
 
-    <!-- UI Manager -->
-    <script src="js/Managers/UIManager.js"></script>
-    
     <script src="js/Main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </head>
 
-<body>
-    <button id="sidebar-toggle" class="fixed-toggle" onclick="uiManager.toggleSidebar()">Hide Info</button>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div id="selected-node-info">No node selected</div>
+<body class="bg-dark text-light overflow-hidden vh-100">
+    <div class="container-fluid h-100 p-0">
+        <div class="row g-0 h-100">
 
-            <h2>Connections</h2>
-            <button id="btn-save" onclick="saveConnections()">Save connections</button>
-            <button id="btn-load" onclick="loadConnections()">Load connections</button>
+            <aside
+                class="col-md-3 col-lg-2 bg-secondary bg-opacity-25 border-end border-secondary p-3 d-flex flex-column overflow-auto sidebar shadow"
+                id="sidebar">
 
-            <div id="connection-status" class="status">No action yet</div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="m-0">Inspector</h5>
+                    <button class="btn btn-sm btn-outline-light" onclick="toggleSidebar()">Esconder</button>
+                </div>
 
-            <h2>Instructions</h2>
-            <div class="instructions">
-                <p><strong>Left-click:</strong> Create node on Empty Space</p>
-                <p><strong>Select node with Left-click:</strong> Select Node and pushes it to the middle</p>
-                <p><strong>Click another node:</strong> Select another node</p>
-                <p><strong>Righ-Click and Drag:</strong> Starts link creation</p>
-                <p><strong>Right-Click end in empty space:</strong> Deselect</p>
-                <p><strong>Right-Click end in Node:</strong> Creates Link</p>
-            </div>
-        </aside>
+                <div id="selected-node-info" class="card bg-dark border-secondary text-light p-3 mb-4 shadow-sm">
+                    <p class="m-0 text-center">Nenhum Node selecionado</p>
+                </div>
 
-        <main class="game-area">
-            <!-- p5 canvas -->
-        </main>
+                <h6 class="text-uppercase fw-bold mb-2">Física Global</h6>
+                <div class="mb-4">
+                    <label class="form-label  small mb-0">Fricção</label>
+                    <input type="range" class="form-range form-range-sm" min="0.01" max="0.50" step="0.01" value="0.15"
+                        oninput="setGlobalFriction(this.value)">
+                </div>
+
+                <h6 class="text-uppercase fw-bold mb-2">Conexões</h6>
+                <div class="d-grid gap-2 mb-2">
+                    <button id="btn-save" class="btn btn-success btn-sm" onclick="saveConnections()">
+                        Guardar Conexões
+                    </button>
+                    <button id="btn-load" class="btn btn-primary btn-sm" onclick="loadConnections()">
+                        Carregar Conexões
+                    </button>
+                </div>
+                <div id="connection-status"
+                    class="alert alert-dark border-secondary py-2 px-3 mb-4 text-center text-light"
+                    style="font-size: 0.85rem;" role="alert">
+                    Sem ações recentes
+                </div>
+
+                <h6 class="text-uppercase fw-bold mb-2 mt-auto">Instruções</h6>
+                <div class="card bg-dark border-secondary text-light p-3 shadow-sm" style="font-size: 0.85rem;">
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Esq. Num vazio:</strong> Cria Node</li>
+                        <li><strong>Esq. Num Node:</strong> Seleciona e foca</li>
+                        <li><strong>Dir. e Arrastar:</strong> Inicia ligação</li>
+                        <li><strong>Dir. no vazio:</strong> Cancela ação</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <main id="game-main" class="col-md-9 col-lg-10 position-relative game-area p-0">
+                <button id="sidebar-toggle-open"
+                    class="btn btn-secondary btn-sm position-absolute top-0 start-0 m-2 d-none" style="z-index: 1000;"
+                    onclick="toggleSidebar()"> Mostrar Inspector
+                </button>
+
+            </main>
+
+        </div>
     </div>
 </body>
 

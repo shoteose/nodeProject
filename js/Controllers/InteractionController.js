@@ -50,8 +50,9 @@ class InteractionController {
           this.isCreatingLink = true;
           this.linkStartNode = clickedNode;
           this.linkTargetNode = null;
+        }else {
+          this.network.setSelectedNode(null);
         }
-        // Right click on empty space does nothing
       }
     } catch (error) {
       console.error("ERROR in handleMousePressed:", error);
@@ -131,11 +132,12 @@ class InteractionController {
       console.log("createNode called - X:", x, "Y:", y);
       const id = Math.max(...this.network.nodes.map(n => n.id), 0) + 1;
       const name = `Node ${id}`;
-      const size = 30;
+      const size = 45;
       const color = '#3498db';
       console.log("Creating node with id:", id, "name:", name);
       const node = new StandardNode(id, name, size, color, x, y);
       this.network.addNode(node);
+      this.network.setSelectedNode(node);
       console.log("Node created and added to network");
     } catch (error) {
       console.error("ERROR in createNode:", error);

@@ -11,13 +11,11 @@ class PhysicsController {
     if (selected && !this.network.getDragging()) {
       let transform = selected.getComponent(TransformComponent);
       if (transform) {
-        transform.x = lerp(transform.x, width / 2, 0.03);
-        transform.y = lerp(transform.y, height / 2, 0.03);
-        transform.vx = 0; 
-        transform.vy = 0;
+        transform.vx += (width / 2 - transform.x) * 0.02;
+        transform.vy += (height / 2 - transform.y) * 0.02;
       }
     }
-    
+
 
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
@@ -33,7 +31,6 @@ class PhysicsController {
     }
 
     links.forEach(link => link.applyForce(selected));
-
-    nodes.forEach(node => node.update());
+    nodes.forEach(node => node.update(this.network.friction));
   }
 }

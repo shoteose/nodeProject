@@ -3,11 +3,13 @@ class PhysicsComponent extends IComponent {
     super();
   }
 
-  update() {
+  update(friction = 0.15) {
     let transform = this.entity.getComponent(TransformComponent);
     if (transform) {
-      transform.vx *= 0.85; // Friction
-      transform.vy *= 0.85;
+      const damping = 1 - friction;
+
+      transform.vx *= damping;
+      transform.vy *= damping;
       transform.x += transform.vx;
       transform.y += transform.vy;
     }
