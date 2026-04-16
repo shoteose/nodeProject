@@ -16,7 +16,6 @@ class PhysicsController {
       }
     }
 
-
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
         let node_1 = nodes[i];
