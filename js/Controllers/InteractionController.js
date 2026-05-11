@@ -8,6 +8,12 @@ class InteractionController {
     this.linkStartNode = null;
     this.linkTargetNode = null; // For highlighting during link creation
     this.nodePressedForDrag = null; // Track node pressed for drag
+    this.isPressedForAddingForce = false; // Track if mouse is pressed for adding force
+    this.isApplyingForce = false; // Ctrl + right-click force mode
+    this.forceNode = null; // Node receiving the force
+    this.forceDragX = 0; // Current mouse drag position
+    this.forceDragY = 0;
+    this.forceMultiplier = 1.0; // UI-controlled force multiplier
   }
 
   handleMousePressed(mx, my, button) {
@@ -29,6 +35,16 @@ class InteractionController {
         this.nodePressedForDrag = null;
       }
 
+      // Ctrl + Right-click: start force vector mode on any node
+      if (button === 2 && keyIsDown(CONTROL) && clickedNode) {
+        this.isApplyingForce = true;
+        this.forceNode = clickedNode;
+        let transform = clickedNode.getComponent(TransformComponent);
+        this.forceDragX = transform ? transform.x : mx;
+        this.forceDragY = transform ? transform.y : my;
+        return false;
+      }
+
       if (button === 0) { // Left click
         if (clickedNode) {
           if (this.isCreatingLink) {
@@ -38,7 +54,7 @@ class InteractionController {
             }
             this.isCreatingLink = false;
             this.linkStartNode = null;
-          } else {
+          } else if (!keyIsDown(CONTROL)) {
             this.network.setSelectedNode(clickedNode);
           }
         } else {
@@ -63,6 +79,13 @@ class InteractionController {
     try {
       console.log("handleMouseDragged called - X:", mx, "Y:", my);
       
+      // Force vector drag
+      if (this.isApplyingForce && this.forceNode) {
+        this.forceDragX = mx;
+        this.forceDragY = my;
+        return;
+      }
+
       if (this.isCreatingLink && this.linkStartNode) {
         // Update link creation preview 
         // check for target node under cursor
@@ -106,6 +129,32 @@ class InteractionController {
     try {
       console.log("handleMouseReleased called");
       
+      // Apply force from drag vector
+      if (this.isApplyingForce && this.forceNode) {
+        let transform = this.forceNode.getComponent(TransformComponent);
+        let physics = this.forceNode.getComponent(PhysicsComponent);
+        if (transform) {
+          let dx = this.forceDragX - transform.x;
+          let dy = this.forceDragY - transform.y;
+          // Apply force in opposite direction, scaled
+          let forceFactor = 0.1 * this.forceMultiplier;
+          let fx = -dx * forceFactor;
+          let fy = -dy * forceFactor;
+
+          if (physics) {
+            physics.applyForce(fx, fy);
+          } else {
+            transform.vx += fx;
+            transform.vy += fy;
+          }
+
+          console.log("Force applied to node", this.forceNode.id, "fx:", fx, "fy:", fy);
+        }
+        this.isApplyingForce = false;
+        this.forceNode = null;
+        return;
+      }
+
       if (this.isCreatingLink && this.linkStartNode && this.linkTargetNode) {
         console.log("Completing link creation between", this.linkStartNode.id, "and", this.linkTargetNode.id);
         this.createLink(this.linkStartNode, this.linkTargetNode);
@@ -177,5 +226,17 @@ class InteractionController {
 
   isCreatingLinkMode() {
     return this.isCreatingLink;
+  }
+
+  isApplyingForceMode() {
+    return this.isApplyingForce;
+  }
+
+  getForceNode() {
+    return this.forceNode;
+  }
+
+  getForceDrag() {
+    return { x: this.forceDragX, y: this.forceDragY };
   }
 }

@@ -5,54 +5,88 @@ class CollisionComponent extends IComponent {
 
 
   resolveAgainst(entity1, entity2, selectedNode) {
-    const t1 = entity1.getComponent(TransformComponent);
-    const r1 = entity1.getComponent(RenderComponent);
-    const t2 = entity2.getComponent(TransformComponent);
-    const r2 = entity2.getComponent(RenderComponent);
+    const transform_1 = entity1.getComponent(TransformComponent);
+    const renderer_1 = entity1.getComponent(RenderComponent);
+    const transform_2 = entity2.getComponent(TransformComponent);
+    const renderer_2 = entity2.getComponent(RenderComponent);
+    const physic_1 = entity1.getComponent(PhysicsComponent);
+    const physic_2 = entity2.getComponent(PhysicsComponent);
 
-    if (!t1 || !r1 || !t2 || !r2) return;
+    if (!transform_1 || !renderer_1 || !transform_2 || !renderer_2)
+    {
+      return;
+    }
 
-    let dx = t2.x - t1.x;
-    let dy = t2.y - t1.y;
-    let distSq = dx * dx + dy * dy;
-    let distance = Math.sqrt(distSq);
-    let minDist = r1.tamanho + r2.tamanho;
+    const m1 = physic_1 ? physic_1.mass : 1.0;
+    const m2 = physic_2 ? physic_2.mass : 1.0;
+    const totalMass = m1 + m2;
+
+    let distance_x = transform_2.x - transform_1.x;
+    let distance_y = transform_2.y - transform_1.y;
+    let distance_Sqr_root = distance_x * distance_x + distance_y * distance_y;
+    let distance_normalized = Math.sqrt(distance_Sqr_root);
+    let minDist = renderer_1.tamanho + renderer_2.tamanho;
 
     // direct overlap resolution
-    if (distance > 0 && distance < minDist) {
-      let overlap = minDist - distance;
-      let nx = dx / distance;
-      let ny = dy / distance;
+    if (distance_normalized > 0 && distance_normalized < minDist) {
+      let overlap = minDist - distance_normalized;
+      let nx = distance_x / distance_normalized;
+      let ny = distance_y / distance_normalized;
 
       if (entity1 === selectedNode) {
-        t2.x += nx * overlap;
-        t2.y += ny * overlap;
+        transform_2.x += nx * overlap;
+        transform_2.y += ny * overlap;
       } else if (entity2 === selectedNode) {
-        t1.x -= nx * overlap;
-        t1.y -= ny * overlap;
+        transform_1.x -= nx * overlap;
+        transform_1.y -= ny * overlap;
       } else {
-        t1.x -= nx * overlap * 0.5;
-        t1.y -= ny * overlap * 0.5;
-        t2.x += nx * overlap * 0.5;
-        t2.y += ny * overlap * 0.5;
+        // Mass-weighted positional separation
+        let ratio1 = m2 / totalMass;
+        let ratio2 = m1 / totalMass;
+        transform_1.x -= nx * overlap * ratio1;
+        transform_1.y -= ny * overlap * ratio1;
+        transform_2.x += nx * overlap * ratio2;
+        transform_2.y += ny * overlap * ratio2;
+      }
+
+      // Apply collision force (impulse) 
+      // lighter nodes get pushed more
+      let collisionForce = overlap * 0.15;
+      if (entity1 !== selectedNode) {
+        transform_1.vx -= nx * collisionForce * (m2 / totalMass);
+        transform_1.vy -= ny * collisionForce * (m2 / totalMass);
+      }
+      if (entity2 !== selectedNode) {
+        transform_2.vx += nx * collisionForce * (m1 / totalMass);
+        transform_2.vy += ny * collisionForce * (m1 / totalMass);
       }
     }
 
     // repulsion when close but not touching 
+    // scaled by mass 
     const repulseRange = minDist + 40;
-    if (distance > 0 && distance < repulseRange) {
-      let repulseForce = (repulseRange - distance) * 0.02;
-      let forceX = (dx / distance) * repulseForce;
-      let forceY = (dy / distance) * repulseForce;
+    if (distance_normalized > 0 && distance_normalized < repulseRange) {
+      let repulseForce = (repulseRange - distance_normalized) * 0.02 * m1 * m2;
+      let forceX = (distance_x / distance_normalized) * repulseForce;
+      let forceY = (distance_y / distance_normalized) * repulseForce;
 
       if (entity1 !== selectedNode) {
-        t1.vx -= forceX;
-        t1.vy -= forceY;
+        transform_1.vx -= forceX / m1;
+        transform_1.vy -= forceY / m1;
       }
       if (entity2 !== selectedNode) {
-        t2.vx += forceX;
-        t2.vy += forceY;
+        transform_2.vx += forceX / m2;
+        transform_2.vy += forceY / m2;
       }
     }
+  }
+
+  // Returns the pull range for a given entity (used for rendering)
+  static getPullRange(entity) {
+    const render = entity.getComponent(RenderComponent);
+    const physics = entity.getComponent(PhysicsComponent);
+    if (!render) return 0;
+    const mass = physics ? physics.mass : 1.0;
+    return render.tamanho + 40 + mass * 20;
   }
 }

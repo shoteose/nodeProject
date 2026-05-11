@@ -20,13 +20,17 @@ class IEntity {
 
   update() {
     for (let component of this.components.values()) {
-      if (component.update) component.update();
+      if (component.update){
+        component.update();
+      }
     }
   }
 
   draw(renderController, ...args) {
     for (let component of this.components.values()) {
-      if (component.draw) component.draw(renderController, ...args);
+      if (component.draw) {
+        component.draw(renderController, ...args);
+      }
     }
   }
 }

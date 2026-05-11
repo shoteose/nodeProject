@@ -74,6 +74,12 @@ function draw() {
   if (interactionController.isCreatingLinkMode() && interactionController.getLinkStartNode()) {
     renderController.drawLinkPreview(interactionController.getLinkStartNode(), mouseX, mouseY);
   }
+
+  // Draw force vector preview
+  if (interactionController.isApplyingForceMode() && interactionController.getForceNode()) {
+    let drag = interactionController.getForceDrag();
+    renderController.drawForcePreview(interactionController.getForceNode(), drag.x, drag.y);
+  }
   
   networkManager.nodes.forEach(node => {
     const selected = networkManager.getSelectedNode();
@@ -362,8 +368,28 @@ function setSelectedNodeColor(color) {
   if (render) render.cor = color;
 }
 
+function setForceMultiplier(value) {
+  if (interactionController) {
+    interactionController.forceMultiplier = value;
+  }
+  const display = document.getElementById('force-multiplier-value');
+  if (display) display.textContent = value.toFixed(1);
+}
+
 function toggleSidebar() {
   if (uiManager) uiManager.toggleSidebar();
+}
+
+function keyPressed() {
+  // Handle keyboard input here
+
+  if(key !=='Escape' || keyCode !== 27) {
+    return;
+  }
+
+  networkManager.setSelectedNode(null);
+
+  console.log("Key pressed:", key, "keyCode:", keyCode);
 }
 
 

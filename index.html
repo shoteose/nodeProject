@@ -52,6 +52,13 @@
 
             <div id="connection-status" class="status">No action yet</div>
 
+            <h2>Force Settings</h2>
+            <div class="force-settings">
+                <label for="force-multiplier"><strong>Force Multiplier:</strong></label>
+                <input id="force-multiplier" type="range" min="0.1" max="5" step="0.1" value="1" oninput="setForceMultiplier(parseFloat(this.value))">
+                <span id="force-multiplier-value">1.0</span>
+            </div>
+
             <h2>Instructions</h2>
             <div class="instructions">
                 <p><strong>Left-click:</strong> Create node on Empty Space</p>
@@ -60,6 +67,7 @@
                 <p><strong>Righ-Click and Drag:</strong> Starts link creation</p>
                 <p><strong>Right-Click end in empty space:</strong> Deselect</p>
                 <p><strong>Right-Click end in Node:</strong> Creates Link</p>
+                <p><strong>Ctrl + Right-Click on Node and Drag:</strong> Apply force</p>
             </div>
         </aside>
 
