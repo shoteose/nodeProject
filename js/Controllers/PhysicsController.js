@@ -29,7 +29,8 @@ class PhysicsController {
       }
     }
 
-    links.forEach(link => link.applyForce(selected));
+    let dragged = this.network.getDraggedNode();
+    links.forEach(link => link.applyForce(selected, dragged));
     nodes.forEach(node => node.update(this.network.friction));
   }
 }

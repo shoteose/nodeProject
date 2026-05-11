@@ -49,6 +49,7 @@ class NetworkSerializer {
   serializeNetwork() {
     const version = '1.0';
     let data = version + '\n';
+    data += this.networkManager.friction + '\n';
 
     // Nodes
     data += this.networkManager.nodes.length + '\n';
@@ -56,7 +57,7 @@ class NetworkSerializer {
       const transform = node.getComponent(TransformComponent);
       const render = node.getComponent(RenderComponent);
       if (transform && render) {
-        data += `${node.id};${render.nome};${render.tamanho}\n`;
+        data += `${node.id};${render.nome};${render.tamanho};${render.cor};${transform.x};${transform.y}\n`;
       }
     }
 
@@ -72,7 +73,10 @@ class NetworkSerializer {
   deserializeNetwork(data) {
     const lines = data.trim().split('\n');
     let lineIndex = 0;
-    lineIndex++; // Skip version
+    const version = lines[lineIndex++];
+    const friction = parseFloat(lines[lineIndex++]);
+    this.networkManager.friction = friction;
+    this.uiManager.updateFrictionSlider();
 
     // Clear existing network
     this.networkManager.nodes = [];
@@ -82,8 +86,8 @@ class NetworkSerializer {
     // Read nodes
     const nodeCount = parseInt(lines[lineIndex++]);
     for (let i = 0; i < nodeCount; i++) {
-      const [id, nome, tamanho] = lines[lineIndex++].split(';');
-      const node = new StandardNode(parseInt(id), nome, parseFloat(tamanho), '#3498db', random(width), random(height));
+      const [id, nome, tamanho, cor, x, y] = lines[lineIndex++].split(';');
+      const node = new StandardNode(parseInt(id), nome, parseFloat(tamanho), cor, parseFloat(x), parseFloat(y));
       this.networkManager.addNode(node);
     }
 

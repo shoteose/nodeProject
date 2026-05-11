@@ -5,6 +5,7 @@ class NetworkManager {
     this.links = [];
     this.selectedNode = null;
     this.isDragging = false;
+    this.draggedNode = null;
     this.friction = 0.15;
   }
 
@@ -56,6 +57,15 @@ class NetworkManager {
   getDragging() {
     console.log("getDragging called, returning:", this.isDragging);
     return this.isDragging;
+  }
+
+  setDraggedNode(node) {
+    console.log("setDraggedNode called with:", node ? node.id : "null");
+    this.draggedNode = node;
+  }
+
+  getDraggedNode() {
+    return this.draggedNode;
   }
 }
 

@@ -6,7 +6,7 @@ class SpringLink extends ILink {
     this.cor = cor;
   }
 
-  applyForce(selectedNode) {
+  applyForce(selectedNode, draggedNode = null) {
     let sourceTransform = this.source.getComponent(TransformComponent);
     let targetTransform = this.target.getComponent(TransformComponent);
 
@@ -27,11 +27,11 @@ class SpringLink extends ILink {
     let fx = (dx / distanceToTarget) * forceMagnitude;
     let fy = (dy / distanceToTarget) * forceMagnitude;
 
-    if (selectedNode !== this.source) {
+    if (selectedNode !== this.source && draggedNode !== this.source) {
       sourceTransform.vx += fx;
       sourceTransform.vy += fy;
     }
-    if (selectedNode !== this.target) {
+    if (selectedNode !== this.target && draggedNode !== this.target) {
       targetTransform.vx -= fx;
       targetTransform.vy -= fy;
     }

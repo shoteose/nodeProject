@@ -145,4 +145,11 @@ class UIManager {
       if (render) render.cor = color;
     }
   }
+
+  updateFrictionSlider() {
+    const slider = document.getElementById('friction-slider');
+    if (slider) {
+      slider.value = this.networkManager.friction;
+    }
+  }
 }

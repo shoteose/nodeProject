@@ -10,7 +10,7 @@ class InteractionController {
     this.nodePressedForDrag = null; // Track node pressed for drag
   }
 
-  handleMousePressed(mx, my, button) {
+  handleMousePressed(mx, my, button, ctrlKey = false) {
     try {      
       // Find node under cursor
       let clickedNode = null;
@@ -39,7 +39,9 @@ class InteractionController {
             this.isCreatingLink = false;
             this.linkStartNode = null;
           } else {
-            this.network.setSelectedNode(clickedNode);
+            if (!ctrlKey) {
+              this.network.setSelectedNode(clickedNode);
+            }
           }
         } else {
           // Create new node at position
@@ -85,6 +87,7 @@ class InteractionController {
       // Only start dragging if the initial mouse down was on a node
       if (this.nodePressedForDrag && !this.isDraggingNode) {
         this.network.setDragging(true);
+        this.network.setDraggedNode(this.nodePressedForDrag);
         this.isDraggingNode = true;
         this.draggedNode = this.nodePressedForDrag;
       }
@@ -116,6 +119,7 @@ class InteractionController {
       
       // Reset all
       this.network.setDragging(false);
+      this.network.setDraggedNode(null);
       this.isDraggingNode = false;
       this.draggedNode = null;
       this.isCreatingLink = false;

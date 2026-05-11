@@ -58,7 +58,7 @@
                 <h6 class="text-uppercase fw-bold mb-2">Física Global</h6>
                 <div class="mb-4">
                     <label class="form-label  small mb-0">Fricção</label>
-                    <input type="range" class="form-range form-range-sm" min="0.01" max="0.50" step="0.01" value="0.15"
+                    <input id="friction-slider" type="range" class="form-range form-range-sm" min="0.01" max="0.50" step="0.01" value="0.15"
                         oninput="setGlobalFriction(this.value)">
                 </div>
 
@@ -82,6 +82,7 @@
                     <ul class="list-unstyled mb-0">
                         <li><strong>Esq. Num vazio:</strong> Cria Node</li>
                         <li><strong>Esq. Num Node:</strong> Seleciona e foca</li>
+                        <li><strong>Esq. Num Node + Ctrl:</strong> Arrasta sem selecionar</li>
                         <li><strong>Dir. e Arrastar:</strong> Inicia ligação</li>
                         <li><strong>Dir. no vazio:</strong> Cancela ação</li>
                     </ul>

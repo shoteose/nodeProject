@@ -59,11 +59,12 @@ function draw() {
 }
 
 // --- EVENTOS P5.JS ---
-function mousePressed() {
+function mousePressed(event) {
   if (isMouseInCanvas() && interactionController) {
     let button = (mouseButton === 'left' || mouseButton === 0) ? 0 :
       (mouseButton === 'right' || mouseButton === 2) ? 2 : 1;
-    interactionController.handleMousePressed(mouseX, mouseY, button);
+    let ctrlKey = event ? event.ctrlKey : false;
+    interactionController.handleMousePressed(mouseX, mouseY, button, ctrlKey);
   }
 }
 
