@@ -3,7 +3,7 @@ let physicsController;
 let renderController;
 let interactionController;
 let uiManager;
-let networkSerializer; // Nova variável global
+let networkSerializer;
 
 function getCanvasDimensions() {
   const gameArea = document.querySelector('.game-area');
@@ -13,17 +13,14 @@ function getCanvasDimensions() {
 }
 
 function updateCanvasPosition() {
-  // Lógica para quando a sidebar colapsa, se necessário
 }
 
 function setup() {
   const dims = getCanvasDimensions();
 
-  // Criar o canvas e colocá-lo dentro do contentor correto do HTML
   let canvas = createCanvas(dims.width, dims.height);
-  canvas.parent(document.querySelector('.game-area')); // <-- ISTO É IMPORTANTE
+  canvas.parent(document.querySelector('.game-area'));
 
-  // Inicializar arquitetura
   networkManager = new NetworkManager();
   renderController = new RenderController();
   physicsController = new PhysicsController(networkManager);
@@ -31,7 +28,6 @@ function setup() {
   uiManager = new UIManager(networkManager);
   networkSerializer = new NetworkSerializer(networkManager, uiManager);
 
-  // Prevenir menu de contexto no clique direito
   document.addEventListener('contextmenu', e => e.preventDefault());
 }
 
@@ -54,7 +50,6 @@ function draw() {
     node.draw(renderController, isSelected, isLinkTarget);
   });
 
-  // Atualiza a UI delegando para o UIManager (Removemos a duplicação daqui!)
   uiManager.updateSelectedNodeInfo();
 }
 
