@@ -1,6 +1,7 @@
 class PhysicsController {
-  constructor(networkManager) {
+  constructor(networkManager, effectController = null) {
     this.network = networkManager;
+    this.effectController = effectController;
   }
 
   update() {
@@ -23,6 +24,22 @@ class PhysicsController {
 
     links.forEach(link => link.update(selected, dragged));
     nodes.forEach(node => node.update(this.network.friction));
+    this.feedTensionToGlow(links);
+  }
+
+  feedTensionToGlow(links) {
+    for (const link of links) {
+      const phys = link.getComponent(SpringPhysicsComponent);
+      const conn = link.getComponent(ConnectionComponent);
+      if (!phys || !conn) continue;
+      const t = Math.abs(phys.tension);
+      if (t > 0.3) {
+        for (const node of [conn.source, conn.target]) {
+          const glow = node.getComponent(GlowEffectComponent);
+          if (glow) glow.tensionInput = Math.max(glow.tensionInput, t);
+        }
+      }
+    }
   }
 
   pullSelectedToCenter(selected) {
@@ -47,6 +64,11 @@ class PhysicsController {
     const minDist = r1.tamanho + r2.tamanho;
 
     if (distance > 0 && distance < minDist) {
+      const impactSpeed = Math.hypot(t2.vx - t1.vx, t2.vy - t1.vy);
+      if (impactSpeed > 4 && this.effectController && Math.random() < 0.25) {
+        this.effectController.addBurst((t1.x + t2.x) / 2, (t1.y + t2.y) / 2, '#c8d8ff', 5);
+      }
+
       const overlap = minDist - distance;
       const nx = dx / distance;
       const ny = dy / distance;

@@ -1,17 +1,17 @@
 class ParticleSystem {
   constructor() {
-    this._bursts = [];
-    this._trails = [];
-    this._flowMap = new Map();
+    this.bursts = [];
+    this.trails = [];
+    this.flowMap = new Map();
   }
 
   // ── Public API ──────────────────────────────────────────
 
   burst(x, y, cor, count = 14) {
     for (let i = 0; i < count; i++) {
-      const angle = (i / count) * TWO_PI;
+      const angle = (i / count) * TWOPI;
       const speed = random(1.5, 5);
-      this._bursts.push({
+      this.bursts.push({
         x, y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
@@ -30,7 +30,7 @@ class ParticleSystem {
       if (!t || !r) continue;
       const speed = Math.hypot(t.vx, t.vy);
       if (speed > 0.8) {
-        this._trails.push({
+        this.trails.push({
           x: t.x, y: t.y,
           alpha: Math.min(speed * 25, 160),
           size: r.tamanho * 0.45
@@ -41,17 +41,17 @@ class ParticleSystem {
 
   // Call once per frame with current link list
   syncLinkFlows(links) {
-    for (const [link] of this._flowMap) {
-      if (!links.includes(link)) this._flowMap.delete(link);
+    for (const [link] of this.flowMap) {
+      if (!links.includes(link)) this.flowMap.delete(link);
     }
     for (const link of links) {
-      if (!this._flowMap.has(link)) {
-        this._flowMap.set(link, [
+      if (!this.flowMap.has(link)) {
+        this.flowMap.set(link, [
           { t: random(0, 0.5), speed: random(0.003, 0.006) },
           { t: random(0.5, 1), speed: random(0.003, 0.006) }
         ]);
       }
-      for (const p of this._flowMap.get(link)) {
+      for (const p of this.flowMap.get(link)) {
         p.t += p.speed;
         if (p.t > 1) p.t -= 1;
       }
@@ -59,18 +59,18 @@ class ParticleSystem {
   }
 
   update() {
-    for (let i = this._trails.length - 1; i >= 0; i--) {
-      this._trails[i].alpha -= 18;
-      if (this._trails[i].alpha <= 0) this._trails.splice(i, 1);
+    for (let i = this.trails.length - 1; i >= 0; i--) {
+      this.trails[i].alpha -= 18;
+      if (this.trails[i].alpha <= 0) this.trails.splice(i, 1);
     }
-    for (let i = this._bursts.length - 1; i >= 0; i--) {
-      const p = this._bursts[i];
+    for (let i = this.bursts.length - 1; i >= 0; i--) {
+      const p = this.bursts[i];
       p.x += p.vx;
       p.y += p.vy;
       p.vx *= 0.92;
       p.vy *= 0.92;
       p.alpha -= 9;
-      if (p.alpha <= 0) this._bursts.splice(i, 1);
+      if (p.alpha <= 0) this.bursts.splice(i, 1);
     }
   }
 
@@ -78,13 +78,13 @@ class ParticleSystem {
     noStroke();
 
     // Trails - soft white ghosts
-    for (const t of this._trails) {
+    for (const t of this.trails) {
       fill(200, 210, 255, t.alpha);
       circle(t.x, t.y, t.size * 2);
     }
 
     // Flow dots along links
-    for (const [link, particles] of this._flowMap) {
+    for (const [link, particles] of this.flowMap) {
       const src = link.source.getComponent(TransformComponent);
       const tgt = link.target.getComponent(TransformComponent);
       if (!src || !tgt) continue;
@@ -97,7 +97,7 @@ class ParticleSystem {
     }
 
     // Burst particles - use node's own color
-    for (const p of this._bursts) {
+    for (const p of this.bursts) {
       const c = color(p.cor);
       c.setAlpha(p.alpha);
       fill(c);

@@ -85,9 +85,19 @@ class RenderController {
     }
   }
 
+  drawTensionParticles(component) {
+    noStroke();
+    for (const p of component.particles) {
+      const c = color(p.cor);
+      c.setAlpha(p.alpha);
+      fill(c);
+      circle(p.x, p.y, 4);
+    }
+  }
+
   drawGlow(component, transform, renderComponent) {
     const speed = Math.hypot(transform.vx, transform.vy);
-    const pulse = Math.min(speed * 8, 40);
+    const pulse = Math.min(speed * 8 + component.tensionInput * 50, 60);
     noStroke();
     const gc = color(renderComponent.cor);
     gc.setAlpha(30 + pulse * 0.4); fill(gc);

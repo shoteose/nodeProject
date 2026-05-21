@@ -20,8 +20,8 @@ function setup() {
 
   networkManager = new NetworkManager();
   renderController = new RenderController();
-  physicsController = new PhysicsController(networkManager);
   effectController = new EffectController();
+  physicsController = new PhysicsController(networkManager, effectController);
   interactionController = new InteractionController(networkManager, effectController);
   uiManager = new UIManager(networkManager);
   networkSerializer = new NetworkSerializer(networkManager, uiManager);

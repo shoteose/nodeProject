@@ -129,8 +129,21 @@ class InteractionController {
       this.burstNode(selected);
       this.network.removeNode(selected);
     } else if (selectedLink) {
+      this.snapLink(selectedLink);
       this.network.removeLink(selectedLink);
     }
+  }
+
+  snapLink(link) {
+    if (!this.effectController) return;
+    const conn = link.getComponent(ConnectionComponent);
+    const rend = link.getComponent(SpringRenderComponent);
+    if (!conn) return;
+    const cor = rend ? rend.cor : '#7f8c8d';
+    const t1 = conn.source.getComponent(TransformComponent);
+    const t2 = conn.target.getComponent(TransformComponent);
+    if (t1) this.effectController.addBurst(t1.x, t1.y, cor, 8);
+    if (t2) this.effectController.addBurst(t2.x, t2.y, cor, 8);
   }
 
   cancelLinkCreation() {

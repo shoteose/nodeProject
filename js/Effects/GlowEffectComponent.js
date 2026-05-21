@@ -2,6 +2,7 @@ class GlowEffectComponent extends IEffectComponent {
   constructor() {
     super();
     this.enabled = false;
+    this.tensionInput = 0;
   }
 
   update() {}
