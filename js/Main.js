@@ -107,6 +107,7 @@ function toggleSidebar() { uiManager.toggleSidebar(); }
 function setSelectedNodeName(val) { uiManager.setSelectedNodeName(val); }
 function setSelectedNodeSize(val) { uiManager.setSelectedNodeSize(val); }
 function setSelectedNodeColor(val) { uiManager.setSelectedNodeColor(val); }
+function setSelectedNodeGlow(val) { uiManager.setSelectedNodeGlow(val); }
 
 function deselectNode() { if (networkManager) networkManager.setSelectedNode(null); }
 function deleteSelectedNode() {

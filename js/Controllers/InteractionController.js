@@ -30,6 +30,9 @@ class InteractionController {
           this.cancelLinkCreation();
         } else if (!ctrlKey) {
           this.network.setSelectedNode(clickedNode);
+          const pulse = clickedNode.getComponent(PulseEffectComponent);
+          const r = clickedNode.getComponent(RenderComponent);
+          if (pulse && r) pulse.trigger(r.cor, r.tamanho);
         }
       } else {
         const clickedLink = this.getLinkAt(mx, my);
@@ -142,11 +145,11 @@ class InteractionController {
 
   getLinkAt(mx, my) {
     for (const link of this.network.links) {
-      const t1 = link.source.getComponent(TransformComponent);
-      const t2 = link.target.getComponent(TransformComponent);
-      if (t1 && t2 && this.pointToSegmentDist(mx, my, t1.x, t1.y, t2.x, t2.y) < 8) {
-        return link;
-      }
+      const conn = link.getComponent(ConnectionComponent);
+      if (!conn) continue;
+      const t1 = conn.source.getComponent(TransformComponent);
+      const t2 = conn.target.getComponent(TransformComponent);
+      if (t1 && t2 && this.pointToSegmentDist(mx, my, t1.x, t1.y, t2.x, t2.y) < 8) return link;
     }
     return null;
   }
@@ -165,16 +168,29 @@ class InteractionController {
     const node = new StandardNode(id, `Node ${id}`, 45, '#3498db', x, y);
     this.network.addNode(node);
     this.network.setSelectedNode(node);
-    if (this.effectController) this.effectController.addBurst(x, y, '#3498db');
+    if (this.effectController) {
+      this.effectController.addRipple(x, y);
+      this.effectController.addBurst(x, y, '#3498db');
+    }
+    const pulse = node.getComponent(PulseEffectComponent);
+    if (pulse) pulse.trigger('#3498db', 45);
   }
 
   createLink(node1, node2) {
-    const exists = this.network.links.some(l =>
-      (l.source === node1 && l.target === node2) ||
-      (l.source === node2 && l.target === node1)
-    );
+    const exists = this.network.links.some(l => {
+      const conn = l.getComponent(ConnectionComponent);
+      if (!conn) return false;
+      return (conn.source === node1 && conn.target === node2) ||
+             (conn.source === node2 && conn.target === node1);
+    });
     if (exists) return;
-    this.network.addLink(new SpringLink(node1, node2, 100, 0.3, '#7f8c8d'));
+    this.network.addLink(new SpringLink(this.network.nextLinkId, node1, node2, 100, 0.3, '#7f8c8d'));
+    if (this.effectController) {
+      const t1 = node1.getComponent(TransformComponent);
+      const t2 = node2.getComponent(TransformComponent);
+      const r1 = node1.getComponent(RenderComponent);
+      if (t1 && t2 && r1) this.effectController.addLinkSpark(t1.x, t1.y, t2.x, t2.y, r1.cor);
+    }
   }
 
   burstNode(node) {

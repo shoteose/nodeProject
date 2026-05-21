@@ -53,11 +53,14 @@ class NetworkSerializer {
     for (const node of nm.nodes) {
       const t = node.getComponent(TransformComponent);
       const r = node.getComponent(RenderComponent);
-      if (t && r) data += `${node.id};${r.nome};${r.tamanho};${r.cor};${t.x};${t.y}\n`;
+      const g = node.getComponent(GlowEffectComponent);
+      if (t && r) data += `${node.id};${r.nome};${r.tamanho};${r.cor};${t.x};${t.y};${g && g.enabled ? 1 : 0}\n`;
     }
     data += nm.links.length + '\n';
     for (const link of nm.links) {
-      data += `${link.source.id};${link.target.id};${link.distancia};${link.forca}\n`;
+      const conn = link.getComponent(ConnectionComponent);
+      const phys = link.getComponent(SpringPhysicsComponent);
+      if (conn && phys) data += `${conn.source.id};${conn.target.id};${phys.distancia};${phys.forca}\n`;
     }
     return data;
   }
@@ -67,15 +70,21 @@ class NetworkSerializer {
     const nodes = nm.nodes.map(node => {
       const t = node.getComponent(TransformComponent);
       const r = node.getComponent(RenderComponent);
-      return { id: node.id, name: r.nome, size: r.tamanho, color: r.cor, x: t.x, y: t.y };
+      const g = node.getComponent(GlowEffectComponent);
+      return { id: node.id, name: r.nome, size: r.tamanho, color: r.cor, x: t.x, y: t.y, glow: g ? g.enabled : false };
     });
-    const links = nm.links.map(link => ({
-      sourceId: link.source.id,
-      targetId: link.target.id,
-      distance: link.distancia,
-      force: link.forca,
-      color: link.cor
-    }));
+    const links = nm.links.map(link => {
+      const conn = link.getComponent(ConnectionComponent);
+      const phys = link.getComponent(SpringPhysicsComponent);
+      const rend = link.getComponent(SpringRenderComponent);
+      return {
+        sourceId: conn.source.id,
+        targetId: conn.target.id,
+        distance: phys.distancia,
+        force: phys.forca,
+        color: rend.cor
+      };
+    });
     const payload = {
       version: '2.0',
       state: {
@@ -116,8 +125,12 @@ class NetworkSerializer {
     for (let n = 0; n < nodeCount; n++) {
       const parts = lines[i++].split(';');
       if (parts.length < 6) throw new Error('Formato inválido: linha de node incompleta');
-      const [id, nome, tamanho, cor, x, y] = parts;
+      const [id, nome, tamanho, cor, x, y, glowStr] = parts;
       const node = new StandardNode(parseInt(id), nome, parseFloat(tamanho), cor, parseFloat(x), parseFloat(y));
+      if (glowStr === '1') {
+        const g = node.getComponent(GlowEffectComponent);
+        if (g) g.enabled = true;
+      }
       this.networkManager.addNode(node);
     }
 
@@ -129,7 +142,7 @@ class NetworkSerializer {
       const source = this.networkManager.getNodeById(parseInt(id1));
       const target = this.networkManager.getNodeById(parseInt(id2));
       if (source && target) {
-        this.networkManager.addLink(new SpringLink(source, target, parseFloat(distancia), parseFloat(forca), '#7f8c8d'));
+        this.networkManager.addLink(new SpringLink(this.networkManager.nextLinkId, source, target, parseFloat(distancia), parseFloat(forca), '#7f8c8d'));
       }
     }
   }
@@ -149,6 +162,10 @@ class NetworkSerializer {
 
     for (const n of obj.nodes) {
       const node = new StandardNode(n.id, n.name, n.size, n.color, n.x, n.y);
+      if (n.glow) {
+        const g = node.getComponent(GlowEffectComponent);
+        if (g) g.enabled = true;
+      }
       this.networkManager.addNode(node);
     }
 
@@ -156,7 +173,7 @@ class NetworkSerializer {
       const source = this.networkManager.getNodeById(l.sourceId);
       const target = this.networkManager.getNodeById(l.targetId);
       if (source && target) {
-        this.networkManager.addLink(new SpringLink(source, target, l.distance, l.force, l.color || '#7f8c8d'));
+        this.networkManager.addLink(new SpringLink(this.networkManager.nextLinkId, source, target, l.distance, l.force, l.color || '#7f8c8d'));
       }
     }
   }

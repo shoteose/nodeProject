@@ -89,6 +89,7 @@ class UIManager {
 
     const transform = selected.getComponent(TransformComponent);
     const renderComp = selected.getComponent(RenderComponent);
+    const glowComp = selected.getComponent(GlowEffectComponent);
 
     const currentData = {
       type: 'node',
@@ -96,7 +97,8 @@ class UIManager {
       name: renderComp ? renderComp.nome : '',
       x: transform ? parseFloat(transform.x.toFixed(1)) : 0,
       y: transform ? parseFloat(transform.y.toFixed(1)) : 0,
-      size: renderComp ? parseFloat(renderComp.tamanho.toFixed(1)) : 0
+      size: renderComp ? parseFloat(renderComp.tamanho.toFixed(1)) : 0,
+      glow: glowComp ? glowComp.enabled : false
     };
 
     if (this.lastInspectorData &&
@@ -105,7 +107,8 @@ class UIManager {
       this.lastInspectorData.name === currentData.name &&
       this.lastInspectorData.x === currentData.x &&
       this.lastInspectorData.y === currentData.y &&
-      this.lastInspectorData.size === currentData.size) return;
+      this.lastInspectorData.size === currentData.size &&
+      this.lastInspectorData.glow === currentData.glow) return;
 
     this.lastInspectorData = currentData;
     this.lastInspectorUpdateAt = now;
@@ -136,6 +139,12 @@ class UIManager {
         <label class="form-label text-light small mb-1" for="node-size">Tamanho:</label>
         <input id="node-size" name="node-size" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${renderComp ? renderComp.tamanho : 0}" step="0.5" onchange="setSelectedNodeSize(parseFloat(this.value))">
       </div>
+      <div class="mb-3 d-flex align-items-center gap-2">
+        <input type="checkbox" class="form-check-input bg-dark border-secondary" id="node-glow"
+          ${glowComp && glowComp.enabled ? 'checked' : ''}
+          onchange="setSelectedNodeGlow(this.checked)">
+        <label class="form-check-label text-light small" for="node-glow">Glow</label>
+      </div>
       <div class="d-flex gap-2">
         <button class="btn btn-outline-warning btn-sm w-50" onclick="deselectNode()">Deselecionar</button>
         <button class="btn btn-outline-danger btn-sm w-50" onclick="deleteSelectedNode()">Eliminar</button>
@@ -153,13 +162,16 @@ class UIManager {
     const active = document.activeElement;
     if (active && ['link-distance', 'link-force', 'link-color'].includes(active.id)) return;
 
+    const conn = link.getComponent(ConnectionComponent);
+    const phys = link.getComponent(SpringPhysicsComponent);
+    const rend = link.getComponent(SpringRenderComponent);
     const currentData = {
       type: 'link',
-      srcId: link.source.id,
-      tgtId: link.target.id,
-      distance: link.distancia,
-      force: link.forca,
-      color: link.cor
+      srcId: conn?.source.id,
+      tgtId: conn?.target.id,
+      distance: phys?.distancia,
+      force: phys?.forca,
+      color: rend?.cor
     };
 
     if (this.lastInspectorData &&
@@ -173,10 +185,10 @@ class UIManager {
     this.lastInspectorData = currentData;
     this.lastInspectorUpdateAt = now;
 
-    const srcRender = link.source.getComponent(RenderComponent);
-    const tgtRender = link.target.getComponent(RenderComponent);
-    const srcName = srcRender ? srcRender.nome : `#${link.source.id}`;
-    const tgtName = tgtRender ? tgtRender.nome : `#${link.target.id}`;
+    const srcRender = conn?.source.getComponent(RenderComponent);
+    const tgtRender = conn?.target.getComponent(RenderComponent);
+    const srcName = srcRender ? srcRender.nome : `#${conn?.source.id}`;
+    const tgtName = tgtRender ? tgtRender.nome : `#${conn?.target.id}`;
 
     display.innerHTML = `
       <div class="mb-3 border-bottom border-secondary pb-2">
@@ -188,15 +200,15 @@ class UIManager {
       </div>
       <div class="mb-2">
         <label class="form-label text-light small mb-1" for="link-distance">Distância:</label>
-        <input id="link-distance" name="link-distance" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${link.distancia}" step="5" onchange="setSelectedLinkDistance(parseFloat(this.value))">
+        <input id="link-distance" name="link-distance" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${currentData.distance}" step="5" onchange="setSelectedLinkDistance(parseFloat(this.value))">
       </div>
       <div class="mb-2">
         <label class="form-label text-light small mb-1" for="link-force">Força:</label>
-        <input id="link-force" name="link-force" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${link.forca}" step="0.05" min="0.01" max="2" onchange="setSelectedLinkForce(parseFloat(this.value))">
+        <input id="link-force" name="link-force" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${currentData.force}" step="0.05" min="0.01" max="2" onchange="setSelectedLinkForce(parseFloat(this.value))">
       </div>
       <div class="mb-3">
         <label class="form-label text-light small mb-1" for="link-color">Cor:</label>
-        <input id="link-color" name="link-color" type="color" class="form-control form-control-color form-control-sm w-100 bg-dark border-secondary p-1" value="${link.cor}" onchange="setSelectedLinkColor(this.value)">
+        <input id="link-color" name="link-color" type="color" class="form-control form-control-color form-control-sm w-100 bg-dark border-secondary p-1" value="${currentData.color}" onchange="setSelectedLinkColor(this.value)">
       </div>
       <div class="d-flex gap-2">
         <button class="btn btn-outline-warning btn-sm w-50" onclick="deselectLink()">Deselecionar</button>
@@ -230,19 +242,27 @@ class UIManager {
     }
   }
 
+  setSelectedNodeGlow(val) {
+    const selected = this.networkManager.getSelectedNode();
+    if (selected) {
+      const glow = selected.getComponent(GlowEffectComponent);
+      if (glow) glow.enabled = val;
+    }
+  }
+
   // Link setters
   setSelectedLinkDistance(value) {
-    const link = this.networkManager.getSelectedLink();
-    if (link) link.distancia = value;
+    const phys = this.networkManager.getSelectedLink()?.getComponent(SpringPhysicsComponent);
+    if (phys) phys.distancia = value;
   }
 
   setSelectedLinkForce(value) {
-    const link = this.networkManager.getSelectedLink();
-    if (link) link.forca = value;
+    const phys = this.networkManager.getSelectedLink()?.getComponent(SpringPhysicsComponent);
+    if (phys) phys.forca = value;
   }
 
   setSelectedLinkColor(value) {
-    const link = this.networkManager.getSelectedLink();
-    if (link) link.cor = value;
+    const rend = this.networkManager.getSelectedLink()?.getComponent(SpringRenderComponent);
+    if (rend) rend.cor = value;
   }
 }

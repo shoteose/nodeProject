@@ -8,6 +8,7 @@ class NetworkManager {
     this.draggedNode = null;
     this.friction = 0.15;
     this.nextNodeId = 1;
+    this.nextLinkId = 1;
     this.saveVersion = 1;
   }
 
@@ -18,7 +19,10 @@ class NetworkManager {
 
   removeNode(nodeToRemove) {
     if (!nodeToRemove) return;
-    this.links = this.links.filter(link => link.source !== nodeToRemove && link.target !== nodeToRemove);
+    this.links = this.links.filter(link => {
+      const conn = link.getComponent(ConnectionComponent);
+      return !conn || (conn.source !== nodeToRemove && conn.target !== nodeToRemove);
+    });
     this.nodes = this.nodes.filter(n => n !== nodeToRemove);
     if (this.selectedNode === nodeToRemove) this.selectedNode = null;
   }
@@ -31,6 +35,7 @@ class NetworkManager {
 
   addLink(link) {
     this.links.push(link);
+    this.nextLinkId++;
   }
 
   clearNetwork() {
@@ -41,6 +46,7 @@ class NetworkManager {
     this.isDragging = false;
     this.draggedNode = null;
     this.nextNodeId = 1;
+    this.nextLinkId = 1;
     this.saveVersion = 1;
   }
 

@@ -28,20 +28,33 @@ class RenderController {
     text(renderComponent.nome, transformComponent.x, transformComponent.y);
   }
 
-  drawLink(link, src, tgt, isSelected = false) {
+  drawLink(cor, tension, src, tgt, isSelected = false) {
     if (isSelected) {
       stroke('#f39c12');
       strokeWeight(4);
+      line(src.x, src.y, tgt.x, tgt.y);
     } else {
-      const dx = tgt.x - src.x;
-      const dy = tgt.y - src.y;
-      const currentDist = Math.sqrt(dx * dx + dy * dy);
-      const tension = (currentDist - link.distancia) / Math.max(link.distancia, 1);
-      const clamped = Math.max(-1, Math.min(1, tension));
-      stroke(this.tensionColor(link.cor, clamped));
-      strokeWeight(2 + Math.abs(clamped) * 2);
+      const t = Math.max(-1, Math.min(1, tension));
+      const absT = Math.abs(t);
+      const c = this.tensionColor(cor, t);
+
+      if (absT > 0.4) {
+        const intensity = (absT - 0.4) / 0.6;
+        const gc = color(red(c), green(c), blue(c));
+        gc.setAlpha(intensity * 35);
+        stroke(gc);
+        strokeWeight(14 + intensity * 8);
+        line(src.x, src.y, tgt.x, tgt.y);
+        gc.setAlpha(intensity * 60);
+        stroke(gc);
+        strokeWeight(7 + intensity * 4);
+        line(src.x, src.y, tgt.x, tgt.y);
+      }
+
+      stroke(c);
+      strokeWeight(2 + absT * 3);
+      line(src.x, src.y, tgt.x, tgt.y);
     }
-    line(src.x, src.y, tgt.x, tgt.y);
   }
 
   drawLinkPreview(startNode, mx, my) {
@@ -51,6 +64,38 @@ class RenderController {
     stroke('#f39c12');
     strokeWeight(3);
     line(transform.x, transform.y, mx, my);
+  }
+
+  drawTrail(component) {
+    noStroke();
+    for (const p of component.points) {
+      fill(200, 210, 255, p.alpha);
+      circle(p.x, p.y, p.size * 2);
+    }
+  }
+
+  drawPulse(component, transform) {
+    noFill();
+    for (const ring of component.rings) {
+      const c = color(ring.cor);
+      c.setAlpha(ring.alpha);
+      stroke(c);
+      strokeWeight(2);
+      circle(transform.x, transform.y, ring.radius * 2);
+    }
+  }
+
+  drawGlow(component, transform, renderComponent) {
+    const speed = Math.hypot(transform.vx, transform.vy);
+    const pulse = Math.min(speed * 8, 40);
+    noStroke();
+    const gc = color(renderComponent.cor);
+    gc.setAlpha(30 + pulse * 0.4); fill(gc);
+    circle(transform.x, transform.y, renderComponent.tamanho * 2 + 36);
+    gc.setAlpha(30 + pulse * 0.7); fill(gc);
+    circle(transform.x, transform.y, renderComponent.tamanho * 2 + 22);
+    gc.setAlpha(30 + pulse);       fill(gc);
+    circle(transform.x, transform.y, renderComponent.tamanho * 2 + 10);
   }
 
   tensionColor(baseCor, tension) {

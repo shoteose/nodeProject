@@ -23,11 +23,8 @@ class TrailEffectComponent extends IEffectComponent {
     }
   }
 
-  draw() {
-    noStroke();
-    for (const p of this.points) {
-      fill(200, 210, 255, p.alpha);
-      circle(p.x, p.y, p.size * 2);
-    }
+  draw(renderer) {
+    if (this.points.length === 0) return;
+    renderer.drawTrail(this);
   }
 }
