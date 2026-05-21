@@ -1,6 +1,7 @@
 class InteractionController {
-  constructor(networkManager) {
+  constructor(networkManager, effectController) {
     this.network = networkManager;
+    this.effectController = effectController;
     this.isDraggingNode = false;
     this.draggedNode = null;
     this.isCreatingLink = false;
@@ -8,121 +9,107 @@ class InteractionController {
     this.linkTargetNode = null;
     this.nodePressedForDrag = null;
 
-    document.addEventListener('keydown', (e) => this._handleKeyDown(e));
+    document.addEventListener('keydown', (e) => this.handleKeyDown(e));
   }
 
   handleMousePressed(mx, my, button, ctrlKey = false) {
-    try {
-      const clickedNode = this._getNodeAt(mx, my);
+    const clickedNode = this.getNodeAt(mx, my);
 
-      if (button === 0) {
-        this.nodePressedForDrag = clickedNode;
-      } else {
-        this.nodePressedForDrag = null;
-      }
+    if (button === 0) {
+      this.nodePressedForDrag = clickedNode;
+    } else {
+      this.nodePressedForDrag = null;
+    }
 
-      if (button === 0) {
-        if (clickedNode) {
-          if (this.isCreatingLink) {
-            if (this.linkStartNode && this.linkStartNode !== clickedNode) {
-              this._createLink(this.linkStartNode, clickedNode);
-            }
-            this._cancelLinkCreation();
-          } else {
-            if (!ctrlKey) {
-              this.network.setSelectedNode(clickedNode);
-            }
+    if (button === 0) {
+      if (clickedNode) {
+        if (this.isCreatingLink) {
+          if (this.linkStartNode && this.linkStartNode !== clickedNode) {
+            this.createLink(this.linkStartNode, clickedNode);
           }
-        } else {
-          const clickedLink = this._getLinkAt(mx, my);
-          if (clickedLink) {
-            this.network.setSelectedLink(clickedLink);
-          } else {
-            this.network.setSelectedNode(null);
-            this.network.setSelectedLink(null);
-            this._createNode(mx, my);
-          }
+          this.cancelLinkCreation();
+        } else if (!ctrlKey) {
+          this.network.setSelectedNode(clickedNode);
         }
-      } else if (button === 2) {
-        if (clickedNode) {
-          this.isCreatingLink = true;
-          this.linkStartNode = clickedNode;
-          this.linkTargetNode = null;
+      } else {
+        const clickedLink = this.getLinkAt(mx, my);
+        if (clickedLink) {
+          this.network.setSelectedLink(clickedLink);
         } else {
           this.network.setSelectedNode(null);
           this.network.setSelectedLink(null);
+          this.createNode(mx, my);
         }
       }
-    } catch (error) {
-      console.error('ERROR in handleMousePressed:', error);
+    } else if (button === 2) {
+      if (clickedNode) {
+        this.isCreatingLink = true;
+        this.linkStartNode = clickedNode;
+        this.linkTargetNode = null;
+      } else {
+        this.network.setSelectedNode(null);
+        this.network.setSelectedLink(null);
+      }
     }
     return false;
   }
 
   handleMouseDragged(mx, my) {
-    try {
-      if (this.isCreatingLink && this.linkStartNode) {
-        let targetNode = null;
-        for (const node of this.network.nodes) {
-          if (node !== this.linkStartNode) {
-            const clickable = node.getComponent(ClickableComponent);
-            if (clickable && clickable.contains(mx, my)) {
-              targetNode = node;
-              break;
-            }
+    if (this.isCreatingLink && this.linkStartNode) {
+      this.linkTargetNode = null;
+      for (const node of this.network.nodes) {
+        if (node !== this.linkStartNode) {
+          const clickable = node.getComponent(ClickableComponent);
+          if (clickable && clickable.contains(mx, my)) {
+            this.linkTargetNode = node;
+            break;
           }
         }
-        this.linkTargetNode = targetNode;
-        return;
       }
+      return;
+    }
 
-      if (this.nodePressedForDrag && !this.isDraggingNode) {
-        this.network.setDragging(true);
-        this.network.setDraggedNode(this.nodePressedForDrag);
-        this.isDraggingNode = true;
-        this.draggedNode = this.nodePressedForDrag;
-      }
+    if (this.nodePressedForDrag && !this.isDraggingNode) {
+      this.network.setDragging(true);
+      this.network.setDraggedNode(this.nodePressedForDrag);
+      this.isDraggingNode = true;
+      this.draggedNode = this.nodePressedForDrag;
+    }
 
-      if (this.isDraggingNode && this.draggedNode) {
-        const transform = this.draggedNode.getComponent(TransformComponent);
-        if (transform) {
-          transform.x = mx;
-          transform.y = my;
-          transform.vx = 0;
-          transform.vy = 0;
-        }
+    if (this.isDraggingNode && this.draggedNode) {
+      const transform = this.draggedNode.getComponent(TransformComponent);
+      if (transform) {
+        transform.x = mx;
+        transform.y = my;
+        transform.vx = 0;
+        transform.vy = 0;
       }
-    } catch (error) {
-      console.error('ERROR in handleMouseDragged:', error);
     }
   }
 
   handleMouseReleased() {
-    try {
-      if (this.isCreatingLink && this.linkStartNode && this.linkTargetNode) {
-        this._createLink(this.linkStartNode, this.linkTargetNode);
-      }
-      this._cancelLinkCreation();
-      this.network.setDragging(false);
-      this.network.setDraggedNode(null);
-      this.isDraggingNode = false;
-      this.draggedNode = null;
-    } catch (error) {
-      console.error('ERROR in handleMouseReleased:', error);
+    if (this.isCreatingLink && this.linkStartNode && this.linkTargetNode) {
+      this.createLink(this.linkStartNode, this.linkTargetNode);
     }
+    this.cancelLinkCreation();
+    this.network.setDragging(false);
+    this.network.setDraggedNode(null);
+    this.isDraggingNode = false;
+    this.draggedNode = null;
   }
 
   getLinkTargetNode() { return this.linkTargetNode; }
   getLinkStartNode() { return this.linkStartNode; }
   isCreatingLinkMode() { return this.isCreatingLink; }
 
-  _handleKeyDown(e) {
+  handleKeyDown(e) {
     if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
     if (e.key === 'Delete' || e.key === 'Backspace') {
       const selected = this.network.getSelectedNode();
       const selectedLink = this.network.getSelectedLink();
       if (selected) {
+        this.burstNode(selected);
         this.network.removeNode(selected);
       } else if (selectedLink) {
         this.network.removeLink(selectedLink);
@@ -131,7 +118,7 @@ class InteractionController {
 
     if (e.key === 'Escape') {
       if (this.isCreatingLink) {
-        this._cancelLinkCreation();
+        this.cancelLinkCreation();
       } else {
         this.network.setSelectedNode(null);
         this.network.setSelectedLink(null);
@@ -139,13 +126,13 @@ class InteractionController {
     }
   }
 
-  _cancelLinkCreation() {
+  cancelLinkCreation() {
     this.isCreatingLink = false;
     this.linkStartNode = null;
     this.linkTargetNode = null;
   }
 
-  _getNodeAt(mx, my) {
+  getNodeAt(mx, my) {
     for (const node of this.network.nodes) {
       const clickable = node.getComponent(ClickableComponent);
       if (clickable && clickable.contains(mx, my)) return node;
@@ -153,18 +140,18 @@ class InteractionController {
     return null;
   }
 
-  _getLinkAt(mx, my) {
+  getLinkAt(mx, my) {
     for (const link of this.network.links) {
       const t1 = link.source.getComponent(TransformComponent);
       const t2 = link.target.getComponent(TransformComponent);
-      if (t1 && t2 && this._pointToSegmentDist(mx, my, t1.x, t1.y, t2.x, t2.y) < 8) {
+      if (t1 && t2 && this.pointToSegmentDist(mx, my, t1.x, t1.y, t2.x, t2.y) < 8) {
         return link;
       }
     }
     return null;
   }
 
-  _pointToSegmentDist(px, py, x1, y1, x2, y2) {
+  pointToSegmentDist(px, py, x1, y1, x2, y2) {
     const dx = x2 - x1;
     const dy = y2 - y1;
     const lenSq = dx * dx + dy * dy;
@@ -173,28 +160,27 @@ class InteractionController {
     return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
   }
 
-  _createNode(x, y) {
-    try {
-      const id = this.network.nextNodeId;
-      const node = new StandardNode(id, `Node ${id}`, 45, '#3498db', x, y);
-      this.network.addNode(node);
-      this.network.setSelectedNode(node);
-    } catch (error) {
-      console.error('ERROR in _createNode:', error);
-    }
+  createNode(x, y) {
+    const id = this.network.nextNodeId;
+    const node = new StandardNode(id, `Node ${id}`, 45, '#3498db', x, y);
+    this.network.addNode(node);
+    this.network.setSelectedNode(node);
+    if (this.effectController) this.effectController.addBurst(x, y, '#3498db');
   }
 
-  _createLink(node1, node2) {
-    try {
-      const exists = this.network.links.some(l =>
-        (l.source === node1 && l.target === node2) ||
-        (l.source === node2 && l.target === node1)
-      );
-      if (exists) return;
-      const link = new SpringLink(node1, node2, 100, 0.3, '#7f8c8d');
-      this.network.addLink(link);
-    } catch (error) {
-      console.error('ERROR in _createLink:', error);
-    }
+  createLink(node1, node2) {
+    const exists = this.network.links.some(l =>
+      (l.source === node1 && l.target === node2) ||
+      (l.source === node2 && l.target === node1)
+    );
+    if (exists) return;
+    this.network.addLink(new SpringLink(node1, node2, 100, 0.3, '#7f8c8d'));
+  }
+
+  burstNode(node) {
+    if (!this.effectController) return;
+    const t = node.getComponent(TransformComponent);
+    const r = node.getComponent(RenderComponent);
+    if (t && r) this.effectController.addBurst(t.x, t.y, r.cor, 18);
   }
 }

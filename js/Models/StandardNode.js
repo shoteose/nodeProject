@@ -3,13 +3,14 @@ class StandardNode extends IEntity {
     super(id);
     this.addComponent(new TransformComponent(x, y));
     this.addComponent(new PhysicsComponent());
+    this.addComponent(new TrailEffectComponent());
     this.addComponent(new RenderComponent(nome, tamanho, cor));
     this.addComponent(new ClickableComponent());
     this.addComponent(new CollisionComponent());
   }
 
   contains(px, py) {
-    let clickable = this.getComponent(ClickableComponent);
+    const clickable = this.getComponent(ClickableComponent);
     return clickable ? clickable.contains(px, py) : false;
   }
 
@@ -17,4 +18,3 @@ class StandardNode extends IEntity {
     return `StandardNode(id: ${this.id}, name: ${this.getComponent(RenderComponent).nome})`;
   }
 }
-

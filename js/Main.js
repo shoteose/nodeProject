@@ -4,6 +4,7 @@ let renderController;
 let interactionController;
 let uiManager;
 let networkSerializer;
+let effectController;
 
 function getCanvasDimensions() {
   const gameArea = document.querySelector('.game-area');
@@ -20,7 +21,8 @@ function setup() {
   networkManager = new NetworkManager();
   renderController = new RenderController();
   physicsController = new PhysicsController(networkManager);
-  interactionController = new InteractionController(networkManager);
+  effectController = new EffectController();
+  interactionController = new InteractionController(networkManager, effectController);
   uiManager = new UIManager(networkManager);
   networkSerializer = new NetworkSerializer(networkManager, uiManager);
 
@@ -39,12 +41,11 @@ function draw() {
   physicsController.update();
   renderController.clearBackground();
 
-  const selectedLink = networkManager.getSelectedLink();
+  effectController.update();
+  effectController.draw();
 
-  networkManager.links.forEach(link => {
-    const isSelected = link === selectedLink;
-    link.draw(renderController, isSelected);
-  });
+  const selectedLink = networkManager.getSelectedLink();
+  networkManager.links.forEach(link => link.draw(renderController, link === selectedLink));
 
   if (interactionController.isCreatingLinkMode() && interactionController.getLinkStartNode()) {
     renderController.drawLinkPreview(interactionController.getLinkStartNode(), mouseX, mouseY);
@@ -93,13 +94,12 @@ function isMouseInCanvas() {
   return canvas && mouseX >= 0 && mouseY >= 0 && mouseX <= width && mouseY <= height && window.event.target === canvas;
 }
 
-// --- Global handlers (called from HTML) ---
 function saveConnectionsTxt() { networkSerializer.saveConnectionsTxt(); }
 function saveConnectionsJson() { networkSerializer.saveConnectionsJson(); }
 function loadConnections() { networkSerializer.loadConnections(); }
 function clearNetwork() {
   networkManager.clearNetwork();
-  uiManager.setConnectionStatus('Network limpa', 'info');
+  uiManager.setConnectionStatus('Sem ações recentes');
 }
 
 function toggleSidebar() { uiManager.toggleSidebar(); }
@@ -111,7 +111,12 @@ function setSelectedNodeColor(val) { uiManager.setSelectedNodeColor(val); }
 function deselectNode() { if (networkManager) networkManager.setSelectedNode(null); }
 function deleteSelectedNode() {
   const selected = networkManager.getSelectedNode();
-  if (selected) networkManager.removeNode(selected);
+  if (selected) {
+    const t = selected.getComponent(TransformComponent);
+    const r = selected.getComponent(RenderComponent);
+    if (t && r) effectController.addBurst(t.x, t.y, r.cor, 18);
+    networkManager.removeNode(selected);
+  }
 }
 
 function deselectLink() { if (networkManager) networkManager.setSelectedLink(null); }

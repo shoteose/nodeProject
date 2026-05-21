@@ -7,13 +7,15 @@ class NetworkSerializer {
   // ── Save ────────────────────────────────────────────────
 
   saveConnectionsTxt() {
-    this._download(this.serializeTxt(), 'network.txt', 'text/plain');
-    this.uiManager.setConnectionStatus('Network guardada (TXT)', 'success');
+    this.networkManager.saveVersion++;
+    this.download(this.serializeTxt(), 'network.txt', 'text/plain');
+    this.uiManager.setConnectionStatus(`Network guardada (TXT) v${this.networkManager.saveVersion}`, 'success');
   }
 
   saveConnectionsJson() {
-    this._download(this.serializeJson(), 'network.json', 'application/json');
-    this.uiManager.setConnectionStatus('Network guardada (JSON)', 'success');
+    this.networkManager.saveVersion++;
+    this.download(this.serializeJson(), 'network.json', 'application/json');
+    this.uiManager.setConnectionStatus(`Network guardada (JSON) v${this.networkManager.saveVersion}`, 'success');
   }
 
   // ── Load ────────────────────────────────────────────────
@@ -44,7 +46,8 @@ class NetworkSerializer {
 
   serializeTxt() {
     const nm = this.networkManager;
-    let data = '1.0\n';
+    let data = '1.1\n';
+    data += nm.saveVersion + '\n';
     data += nm.friction + '\n';
     data += nm.nodes.length + '\n';
     for (const node of nm.nodes) {
@@ -75,14 +78,10 @@ class NetworkSerializer {
     }));
     const payload = {
       version: '2.0',
-      meta: {
-        savedAt: new Date().toISOString(),
-        nodeCount: nodes.length,
-        linkCount: links.length
-      },
       state: {
         friction: nm.friction,
-        nextNodeId: nm.nextNodeId
+        nextNodeId: nm.nextNodeId,
+        saveVersion: nm.saveVersion
       },
       nodes,
       links
@@ -95,30 +94,38 @@ class NetworkSerializer {
   deserializeNetwork(text) {
     const trimmed = text.trim();
     if (trimmed.startsWith('{')) {
-      this._parseV2(JSON.parse(trimmed));
+      this.parseV2(JSON.parse(trimmed));
     } else {
-      this._parseV1(trimmed.split('\n'));
+      this.parseV1(trimmed.split('\n'));
     }
   }
 
-  _parseV1(lines) {
+  parseV1(lines) {
     let i = 0;
-    const version = lines[i++]; // '1.0' — accepted, no migration needed
-    if (version !== '1.0') throw new Error(`Versão TXT não suportada: ${version}`);
+    const version = lines[i++];
+    if (version !== '1.0' && version !== '1.1') throw new Error(`Versão TXT não suportada: ${version}`);
+
+    let saveVersion = 0;
+    if (version === '1.1') saveVersion = parseInt(lines[i++]);
 
     const friction = parseFloat(lines[i++]);
-    this._resetNetwork(friction);
+    this.resetNetwork(friction);
+    this.networkManager.saveVersion = saveVersion;
 
     const nodeCount = parseInt(lines[i++]);
     for (let n = 0; n < nodeCount; n++) {
-      const [id, nome, tamanho, cor, x, y] = lines[i++].split(';');
+      const parts = lines[i++].split(';');
+      if (parts.length < 6) throw new Error('Formato inválido: linha de node incompleta');
+      const [id, nome, tamanho, cor, x, y] = parts;
       const node = new StandardNode(parseInt(id), nome, parseFloat(tamanho), cor, parseFloat(x), parseFloat(y));
       this.networkManager.addNode(node);
     }
 
     const linkCount = parseInt(lines[i++]);
     for (let n = 0; n < linkCount; n++) {
-      const [id1, id2, distancia, forca] = lines[i++].split(';');
+      const parts = lines[i++].split(';');
+      if (parts.length < 4) throw new Error('Formato inválido: linha de ligação incompleta');
+      const [id1, id2, distancia, forca] = parts;
       const source = this.networkManager.getNodeById(parseInt(id1));
       const target = this.networkManager.getNodeById(parseInt(id2));
       if (source && target) {
@@ -127,13 +134,17 @@ class NetworkSerializer {
     }
   }
 
-  _parseV2(obj) {
-    if (obj.version !== '2.0') throw new Error(`Versão JSON não suportada: ${obj.version}`);
+  parseV2(obj) {
+    if (!obj.state || !Array.isArray(obj.nodes) || !Array.isArray(obj.links))
+      throw new Error('JSON inválido: campos obrigatórios em falta (state, nodes, links)');
 
-    this._resetNetwork(obj.state.friction);
+    this.resetNetwork(obj.state.friction);
 
     if (obj.state.nextNodeId != null) {
       this.networkManager.nextNodeId = obj.state.nextNodeId;
+    }
+    if (obj.state.saveVersion != null) {
+      this.networkManager.saveVersion = obj.state.saveVersion;
     }
 
     for (const n of obj.nodes) {
@@ -150,13 +161,13 @@ class NetworkSerializer {
     }
   }
 
-  _resetNetwork(friction) {
+  resetNetwork(friction) {
     this.networkManager.clearNetwork();
     this.networkManager.friction = friction;
     this.uiManager.updateFrictionSlider();
   }
 
-  _download(content, filename, mimeType) {
+  download(content, filename, mimeType) {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

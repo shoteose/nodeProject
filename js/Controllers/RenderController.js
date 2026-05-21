@@ -28,15 +28,20 @@ class RenderController {
     text(renderComponent.nome, transformComponent.x, transformComponent.y);
   }
 
-  drawLink(link, sourceTransform, targetTransform, isSelected = false) {
+  drawLink(link, src, tgt, isSelected = false) {
     if (isSelected) {
       stroke('#f39c12');
       strokeWeight(4);
     } else {
-      stroke(link.cor);
-      strokeWeight(2);
+      const dx = tgt.x - src.x;
+      const dy = tgt.y - src.y;
+      const currentDist = Math.sqrt(dx * dx + dy * dy);
+      const tension = (currentDist - link.distancia) / Math.max(link.distancia, 1);
+      const clamped = Math.max(-1, Math.min(1, tension));
+      stroke(this.tensionColor(link.cor, clamped));
+      strokeWeight(2 + Math.abs(clamped) * 2);
     }
-    line(sourceTransform.x, sourceTransform.y, targetTransform.x, targetTransform.y);
+    line(src.x, src.y, tgt.x, tgt.y);
   }
 
   drawLinkPreview(startNode, mx, my) {
@@ -46,5 +51,12 @@ class RenderController {
     stroke('#f39c12');
     strokeWeight(3);
     line(transform.x, transform.y, mx, my);
+  }
+
+  tensionColor(baseCor, tension) {
+    const base = color(baseCor);
+    if (tension > 0) return lerpColor(base, color('#e74c3c'), Math.min(tension * 1.5, 1));
+    if (tension < 0) return lerpColor(base, color('#3498db'), Math.min(-tension * 1.5, 1));
+    return base;
   }
 }

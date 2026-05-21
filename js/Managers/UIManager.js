@@ -31,17 +31,20 @@ class UIManager {
     const status = document.getElementById('connection-status');
     if (!status) return;
     status.textContent = message;
-    status.className = 'alert py-2 px-3 mb-4 text-center';
-    if (type === 'success') status.classList.add('alert-success');
-    else if (type === 'error') status.classList.add('alert-danger');
-    else status.classList.add('alert-secondary', 'border-secondary', 'text-light');
+    status.className = 'py-1 px-2 mb-3 text-center rounded border border-secondary bg-dark';
+    status.style.fontSize = '0.78rem';
+    if (type === 'success') status.classList.add('text-success');
+    else if (type === 'error') status.classList.add('text-danger');
+    else status.classList.add('text-secondary');
   }
 
   updateNetworkStats() {
     const nodeEl = document.getElementById('stat-nodes');
     const linkEl = document.getElementById('stat-links');
+    const verEl = document.getElementById('stat-version');
     if (nodeEl) nodeEl.textContent = this.networkManager.nodes.length;
     if (linkEl) linkEl.textContent = this.networkManager.links.length;
+    if (verEl) verEl.textContent = this.networkManager.saveVersion;
   }
 
   updateFrictionSlider() {
@@ -68,7 +71,7 @@ class UIManager {
     if (this.lastInspectorData !== null) {
       this.lastInspectorData = null;
       const display = document.getElementById('selected-node-info');
-      if (display) display.innerHTML = '<p class="m-0 text-center">Nenhum selecionado</p>';
+      if (display) display.innerHTML = '<p class="m-0 text-center text-secondary small">Nenhum selecionado</p>';
     }
   }
 
@@ -112,26 +115,26 @@ class UIManager {
         <span class="badge bg-primary">ID: ${selected.id}</span>
       </div>
       <div class="mb-2">
-        <label class="form-label text-light small mb-1">Nome:</label>
-        <input id="node-name" class="form-control form-control-sm bg-dark text-light border-secondary" value="${renderComp ? renderComp.nome : ''}" oninput="setSelectedNodeName(this.value)">
+        <label class="form-label text-light small mb-1" for="node-name">Nome:</label>
+        <input id="node-name" name="node-name" class="form-control form-control-sm bg-dark text-light border-secondary" value="${renderComp ? renderComp.nome : ''}" oninput="setSelectedNodeName(this.value)">
       </div>
       <div class="mb-2">
-        <label class="form-label text-light small mb-1">Cor:</label>
-        <input id="node-color" type="color" class="form-control form-control-color form-control-sm w-100 bg-dark border-secondary p-1" value="${renderComp ? renderComp.cor : '#3498db'}" onchange="setSelectedNodeColor(this.value)">
+        <label class="form-label text-light small mb-1" for="node-color">Cor:</label>
+        <input id="node-color" name="node-color" type="color" class="form-control form-control-color form-control-sm w-100 bg-dark border-secondary p-1" value="${renderComp ? renderComp.cor : '#3498db'}" onchange="setSelectedNodeColor(this.value)">
       </div>
       <div class="row g-2 mb-2">
         <div class="col-6">
-          <label class="form-label text-light small mb-1">Pos. X:</label>
-          <input class="form-control form-control-sm bg-dark text-light border-secondary opacity-50" value="${transform ? transform.x.toFixed(1) : 0}" readonly>
+          <label class="form-label text-light small mb-1" for="node-pos-x">Pos. X:</label>
+          <input id="node-pos-x" class="form-control form-control-sm bg-dark text-light border-secondary opacity-50" value="${transform ? transform.x.toFixed(1) : 0}" readonly>
         </div>
         <div class="col-6">
-          <label class="form-label text-light small mb-1">Pos. Y:</label>
-          <input class="form-control form-control-sm bg-dark text-light border-secondary opacity-50" value="${transform ? transform.y.toFixed(1) : 0}" readonly>
+          <label class="form-label text-light small mb-1" for="node-pos-y">Pos. Y:</label>
+          <input id="node-pos-y" class="form-control form-control-sm bg-dark text-light border-secondary opacity-50" value="${transform ? transform.y.toFixed(1) : 0}" readonly>
         </div>
       </div>
       <div class="mb-3">
-        <label class="form-label text-light small mb-1">Tamanho:</label>
-        <input id="node-size" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${renderComp ? renderComp.tamanho : 0}" step="0.5" onchange="setSelectedNodeSize(parseFloat(this.value))">
+        <label class="form-label text-light small mb-1" for="node-size">Tamanho:</label>
+        <input id="node-size" name="node-size" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${renderComp ? renderComp.tamanho : 0}" step="0.5" onchange="setSelectedNodeSize(parseFloat(this.value))">
       </div>
       <div class="d-flex gap-2">
         <button class="btn btn-outline-warning btn-sm w-50" onclick="deselectNode()">Deselecionar</button>
@@ -180,20 +183,20 @@ class UIManager {
         <span class="badge bg-warning text-dark">Ligação</span>
       </div>
       <div class="mb-2">
-        <label class="form-label text-light small mb-1">De → Para:</label>
-        <input class="form-control form-control-sm bg-dark text-light border-secondary opacity-50" value="${srcName} → ${tgtName}" readonly>
+        <label class="form-label text-light small mb-1" for="link-endpoints">De -> Para:</label>
+        <input id="link-endpoints" class="form-control form-control-sm bg-dark text-light border-secondary opacity-50" value="${srcName} -> ${tgtName}" readonly>
       </div>
       <div class="mb-2">
-        <label class="form-label text-light small mb-1">Distância:</label>
-        <input id="link-distance" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${link.distancia}" step="5" onchange="setSelectedLinkDistance(parseFloat(this.value))">
+        <label class="form-label text-light small mb-1" for="link-distance">Distância:</label>
+        <input id="link-distance" name="link-distance" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${link.distancia}" step="5" onchange="setSelectedLinkDistance(parseFloat(this.value))">
       </div>
       <div class="mb-2">
-        <label class="form-label text-light small mb-1">Força:</label>
-        <input id="link-force" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${link.forca}" step="0.05" min="0.01" max="2" onchange="setSelectedLinkForce(parseFloat(this.value))">
+        <label class="form-label text-light small mb-1" for="link-force">Força:</label>
+        <input id="link-force" name="link-force" type="number" class="form-control form-control-sm bg-dark text-light border-secondary" value="${link.forca}" step="0.05" min="0.01" max="2" onchange="setSelectedLinkForce(parseFloat(this.value))">
       </div>
       <div class="mb-3">
-        <label class="form-label text-light small mb-1">Cor:</label>
-        <input id="link-color" type="color" class="form-control form-control-color form-control-sm w-100 bg-dark border-secondary p-1" value="${link.cor}" onchange="setSelectedLinkColor(this.value)">
+        <label class="form-label text-light small mb-1" for="link-color">Cor:</label>
+        <input id="link-color" name="link-color" type="color" class="form-control form-control-color form-control-sm w-100 bg-dark border-secondary p-1" value="${link.cor}" onchange="setSelectedLinkColor(this.value)">
       </div>
       <div class="d-flex gap-2">
         <button class="btn btn-outline-warning btn-sm w-50" onclick="deselectLink()">Deselecionar</button>

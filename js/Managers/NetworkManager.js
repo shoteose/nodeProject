@@ -8,6 +8,7 @@ class NetworkManager {
     this.draggedNode = null;
     this.friction = 0.15;
     this.nextNodeId = 1;
+    this.saveVersion = 1;
   }
 
   addNode(node) {
@@ -40,6 +41,7 @@ class NetworkManager {
     this.isDragging = false;
     this.draggedNode = null;
     this.nextNodeId = 1;
+    this.saveVersion = 1;
   }
 
   getNodeById(id) {

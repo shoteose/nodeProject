@@ -9,14 +9,14 @@ class PhysicsController {
     const selected = this.network.getSelectedNode();
     const dragged = this.network.getDraggedNode();
 
-    this._pullSelectedToCenter(selected);
+    this.pullSelectedToCenter(selected);
 
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
         const n1 = nodes[i];
         const n2 = nodes[j];
         if (n1.hasComponent(CollisionComponent) && n2.hasComponent(CollisionComponent)) {
-          this._resolveCollision(n1, n2, selected);
+          this.resolveCollision(n1, n2, selected);
         }
       }
     }
@@ -25,7 +25,7 @@ class PhysicsController {
     nodes.forEach(node => node.update(this.network.friction));
   }
 
-  _pullSelectedToCenter(selected) {
+  pullSelectedToCenter(selected) {
     if (!selected || this.network.getDragging()) return;
     const transform = selected.getComponent(TransformComponent);
     if (!transform) return;
@@ -33,7 +33,7 @@ class PhysicsController {
     transform.vy += (height / 2 - transform.y) * 0.02;
   }
 
-  _resolveCollision(node1, node2, selectedNode) {
+  resolveCollision(node1, node2, selectedNode) {
     const t1 = node1.getComponent(TransformComponent);
     const r1 = node1.getComponent(RenderComponent);
     const t2 = node2.getComponent(TransformComponent);
