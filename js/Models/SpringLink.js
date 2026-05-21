@@ -1,4 +1,4 @@
-class SpringLink extends ILink {
+class SpringLink extends IEntity {
   constructor(id, sourceNode, targetNode, distancia, forca, cor) {
     super(id);
     this.addComponent(new ConnectionComponent(sourceNode, targetNode));

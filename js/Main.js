@@ -51,13 +51,10 @@ function draw() {
     renderController.drawLinkPreview(interactionController.getLinkStartNode(), mouseX, mouseY);
   }
 
+  const selectedNode = networkManager.getSelectedNode();
+  const linkTarget = interactionController.isCreatingLinkMode() ? interactionController.getLinkTargetNode() : null;
   networkManager.nodes.forEach(node => {
-    const selected = networkManager.getSelectedNode();
-    const isSelected = selected ? node.id === selected.id : false;
-    const isLinkTarget = interactionController.isCreatingLinkMode() &&
-      interactionController.getLinkTargetNode() &&
-      node.id === interactionController.getLinkTargetNode().id;
-    node.draw(renderController, isSelected, isLinkTarget);
+    node.draw(renderController, node === selectedNode, node === linkTarget);
   });
 
   uiManager.updateInspector();
@@ -111,19 +108,12 @@ function setSelectedNodeGlow(val) { uiManager.setSelectedNodeGlow(val); }
 
 function deselectNode() { if (networkManager) networkManager.setSelectedNode(null); }
 function deleteSelectedNode() {
-  const selected = networkManager.getSelectedNode();
-  if (selected) {
-    const t = selected.getComponent(TransformComponent);
-    const r = selected.getComponent(RenderComponent);
-    if (t && r) effectController.addBurst(t.x, t.y, r.cor, 18);
-    networkManager.removeNode(selected);
-  }
+  interactionController.deleteSelected();
 }
 
 function deselectLink() { if (networkManager) networkManager.setSelectedLink(null); }
 function deleteSelectedLink() {
-  const link = networkManager.getSelectedLink();
-  if (link) networkManager.removeLink(link);
+  interactionController.deleteSelected();
 }
 
 function setSelectedLinkDistance(val) { uiManager.setSelectedLinkDistance(val); }

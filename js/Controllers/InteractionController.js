@@ -109,14 +109,7 @@ class InteractionController {
     if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
 
     if (e.key === 'Delete' || e.key === 'Backspace') {
-      const selected = this.network.getSelectedNode();
-      const selectedLink = this.network.getSelectedLink();
-      if (selected) {
-        this.burstNode(selected);
-        this.network.removeNode(selected);
-      } else if (selectedLink) {
-        this.network.removeLink(selectedLink);
-      }
+      this.deleteSelected();
     }
 
     if (e.key === 'Escape') {
@@ -126,6 +119,17 @@ class InteractionController {
         this.network.setSelectedNode(null);
         this.network.setSelectedLink(null);
       }
+    }
+  }
+
+  deleteSelected() {
+    const selected = this.network.getSelectedNode();
+    const selectedLink = this.network.getSelectedLink();
+    if (selected) {
+      this.burstNode(selected);
+      this.network.removeNode(selected);
+    } else if (selectedLink) {
+      this.network.removeLink(selectedLink);
     }
   }
 

@@ -8,12 +8,13 @@ class SparkEffect extends IGlobalEffect {
     const dx = x2 - x1, dy = y2 - y1;
     const len = Math.hypot(dx, dy) || 1;
     const px = -dy / len, py = dx / len;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 22; i++) {
       this.particles.push({
         x1, y1, x2, y2, px, py,
-        t: 0,
-        speed:  random(0.03, 0.07),
-        jitter: random(-12, 12),
+        t: random(0, 0.15),
+        speed:  random(0.025, 0.065),
+        jitter: random(-20, 20),
+        size:   random(4, 9),
         cor
       });
     }
@@ -33,10 +34,19 @@ class SparkEffect extends IGlobalEffect {
       const lx = lerp(s.x1, s.x2, s.t);
       const ly = lerp(s.y1, s.y2, s.t);
       const offset = s.jitter * Math.sin(s.t * Math.PI);
-      const c = color(s.cor);
-      c.setAlpha((1 - s.t) * 220);
-      fill(c);
-      circle(lx + s.px * offset, ly + s.py * offset, 5);
+      const alpha = (1 - s.t) * 255;
+      const cx = lx + s.px * offset;
+      const cy = ly + s.py * offset;
+
+      const gc = color(s.cor);
+      gc.setAlpha(alpha * 0.35);
+      fill(gc);
+      circle(cx, cy, s.size * 2.6);
+
+      const hot = lerpColor(color(255, 255, 255), color(s.cor), s.t * 1.4);
+      hot.setAlpha(alpha);
+      fill(hot);
+      circle(cx, cy, s.size);
     }
   }
 }
