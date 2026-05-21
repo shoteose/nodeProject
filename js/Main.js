@@ -12,13 +12,9 @@ function getCanvasDimensions() {
   return { width: rect.width, height: rect.height };
 }
 
-function updateCanvasPosition() {
-}
-
 function setup() {
   const dims = getCanvasDimensions();
-
-  let canvas = createCanvas(dims.width, dims.height);
+  const canvas = createCanvas(dims.width, dims.height);
   canvas.parent(document.querySelector('.game-area'));
 
   networkManager = new NetworkManager();
@@ -29,13 +25,26 @@ function setup() {
   networkSerializer = new NetworkSerializer(networkManager, uiManager);
 
   document.addEventListener('contextmenu', e => e.preventDefault());
+
+  const gameArea = document.querySelector('.game-area');
+  if (gameArea) {
+    new ResizeObserver(() => {
+      const dims = getCanvasDimensions();
+      resizeCanvas(dims.width, dims.height);
+    }).observe(gameArea);
+  }
 }
 
 function draw() {
   physicsController.update();
   renderController.clearBackground();
 
-  networkManager.links.forEach(link => link.draw(renderController));
+  const selectedLink = networkManager.getSelectedLink();
+
+  networkManager.links.forEach(link => {
+    const isSelected = link === selectedLink;
+    link.draw(renderController, isSelected);
+  });
 
   if (interactionController.isCreatingLinkMode() && interactionController.getLinkStartNode()) {
     renderController.drawLinkPreview(interactionController.getLinkStartNode(), mouseX, mouseY);
@@ -50,15 +59,16 @@ function draw() {
     node.draw(renderController, isSelected, isLinkTarget);
   });
 
-  uiManager.updateSelectedNodeInfo();
+  uiManager.updateInspector();
+  uiManager.updateNetworkStats();
 }
 
-// --- EVENTOS P5.JS ---
+// --- p5.js events ---
 function mousePressed(event) {
   if (isMouseInCanvas() && interactionController) {
-    let button = (mouseButton === 'left' || mouseButton === 0) ? 0 :
+    const button = (mouseButton === 'left' || mouseButton === 0) ? 0 :
       (mouseButton === 'right' || mouseButton === 2) ? 2 : 1;
-    let ctrlKey = event ? event.ctrlKey : false;
+    const ctrlKey = event ? event.ctrlKey : false;
     interactionController.handleMousePressed(mouseX, mouseY, button, ctrlKey);
   }
 }
@@ -76,7 +86,6 @@ function mouseReleased() {
 function windowResized() {
   const dims = getCanvasDimensions();
   resizeCanvas(dims.width, dims.height);
-  updateCanvasPosition();
 }
 
 function isMouseInCanvas() {
@@ -84,45 +93,41 @@ function isMouseInCanvas() {
   return canvas && mouseX >= 0 && mouseY >= 0 && mouseX <= width && mouseY <= height && window.event.target === canvas;
 }
 
-function saveConnections() {
-  networkSerializer.saveConnections();
+// --- Global handlers (called from HTML) ---
+function saveConnectionsTxt() { networkSerializer.saveConnectionsTxt(); }
+function saveConnectionsJson() { networkSerializer.saveConnectionsJson(); }
+function loadConnections() { networkSerializer.loadConnections(); }
+function clearNetwork() {
+  networkManager.clearNetwork();
+  uiManager.setConnectionStatus('Network limpa', 'info');
 }
 
-function loadConnections() {
-  networkSerializer.loadConnections();
-}
+function toggleSidebar() { uiManager.toggleSidebar(); }
 
-function toggleSidebar() {
-  uiManager.toggleSidebar();
-}
+function setSelectedNodeName(val) { uiManager.setSelectedNodeName(val); }
+function setSelectedNodeSize(val) { uiManager.setSelectedNodeSize(val); }
+function setSelectedNodeColor(val) { uiManager.setSelectedNodeColor(val); }
 
-function setSelectedNodeName(val) {
-  uiManager.setSelectedNodeName(val);
-}
-
-function setSelectedNodeSize(val) {
-  uiManager.setSelectedNodeSize(val);
-}
-
-function setSelectedNodeColor(val) {
-  uiManager.setSelectedNodeColor(val);
-}
-
-function deselectNode() {
-  if (networkManager) {
-    networkManager.setSelectedNode(null);
-  }
-}
-
+function deselectNode() { if (networkManager) networkManager.setSelectedNode(null); }
 function deleteSelectedNode() {
   const selected = networkManager.getSelectedNode();
-  if (selected) {
-    networkManager.removeNode(selected);
-  }
+  if (selected) networkManager.removeNode(selected);
 }
+
+function deselectLink() { if (networkManager) networkManager.setSelectedLink(null); }
+function deleteSelectedLink() {
+  const link = networkManager.getSelectedLink();
+  if (link) networkManager.removeLink(link);
+}
+
+function setSelectedLinkDistance(val) { uiManager.setSelectedLinkDistance(val); }
+function setSelectedLinkForce(val) { uiManager.setSelectedLinkForce(val); }
+function setSelectedLinkColor(val) { uiManager.setSelectedLinkColor(val); }
 
 function setGlobalFriction(value) {
   if (networkManager) {
     networkManager.friction = parseFloat(value);
+    const valueEl = document.getElementById('friction-value');
+    if (valueEl) valueEl.textContent = parseFloat(value).toFixed(2);
   }
 }

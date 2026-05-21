@@ -7,25 +7,21 @@ class SpringLink extends ILink {
   }
 
   applyForce(selectedNode, draggedNode = null) {
-    let sourceTransform = this.source.getComponent(TransformComponent);
-    let targetTransform = this.target.getComponent(TransformComponent);
+    const sourceTransform = this.source.getComponent(TransformComponent);
+    const targetTransform = this.target.getComponent(TransformComponent);
 
-    if (!sourceTransform || !targetTransform) {
-      return;
-    }
+    if (!sourceTransform || !targetTransform) return;
 
-    let dx = targetTransform.x - sourceTransform.x;
-    let dy = targetTransform.y - sourceTransform.y;
-    let distanceToTarget = dist(sourceTransform.x, sourceTransform.y, targetTransform.x, targetTransform.y);
+    const dx = targetTransform.x - sourceTransform.x;
+    const dy = targetTransform.y - sourceTransform.y;
+    const distanceToTarget = dist(sourceTransform.x, sourceTransform.y, targetTransform.x, targetTransform.y);
 
-    if (distanceToTarget === 0) {
-      return;
-    }
+    if (distanceToTarget === 0) return;
 
-    let difference = distanceToTarget - this.distancia;
-    let forceMagnitude = difference * this.forca * 0.05;
-    let fx = (dx / distanceToTarget) * forceMagnitude;
-    let fy = (dy / distanceToTarget) * forceMagnitude;
+    const difference = distanceToTarget - this.distancia;
+    const forceMagnitude = difference * this.forca * 0.05;
+    const fx = (dx / distanceToTarget) * forceMagnitude;
+    const fy = (dy / distanceToTarget) * forceMagnitude;
 
     if (selectedNode !== this.source && draggedNode !== this.source) {
       sourceTransform.vx += fx;
@@ -37,12 +33,11 @@ class SpringLink extends ILink {
     }
   }
 
-  draw(renderer) {
-    let sourceTransform = this.source.getComponent(TransformComponent);
-    let targetTransform = this.target.getComponent(TransformComponent);
-
+  draw(renderer, isSelected = false) {
+    const sourceTransform = this.source.getComponent(TransformComponent);
+    const targetTransform = this.target.getComponent(TransformComponent);
     if (sourceTransform && targetTransform) {
-      renderer.drawLink(this, sourceTransform, targetTransform);
+      renderer.drawLink(this, sourceTransform, targetTransform, isSelected);
     }
   }
 }

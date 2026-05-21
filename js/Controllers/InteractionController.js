@@ -7,69 +7,65 @@ class InteractionController {
     this.linkStartNode = null;
     this.linkTargetNode = null;
     this.nodePressedForDrag = null;
+
+    document.addEventListener('keydown', (e) => this._handleKeyDown(e));
   }
 
   handleMousePressed(mx, my, button, ctrlKey = false) {
     try {
-      // Find node under cursor
-      let clickedNode = null;
-      for (let node of this.network.nodes) {
-        let clickable = node.getComponent(ClickableComponent);
-        if (clickable && clickable.contains(mx, my)) {
-          clickedNode = node;
-          break;
-        }
-      }
+      const clickedNode = this._getNodeAt(mx, my);
 
-      // Track node pressed for drag
       if (button === 0) {
         this.nodePressedForDrag = clickedNode;
       } else {
         this.nodePressedForDrag = null;
       }
 
-      if (button === 0) { // Left click
+      if (button === 0) {
         if (clickedNode) {
           if (this.isCreatingLink) {
-            // Complete link creation
             if (this.linkStartNode && this.linkStartNode !== clickedNode) {
-              this.createLink(this.linkStartNode, clickedNode);
+              this._createLink(this.linkStartNode, clickedNode);
             }
-            this.isCreatingLink = false;
-            this.linkStartNode = null;
+            this._cancelLinkCreation();
           } else {
             if (!ctrlKey) {
               this.network.setSelectedNode(clickedNode);
             }
           }
         } else {
-          // Create new node at position
-          this.createNode(mx, my);
+          const clickedLink = this._getLinkAt(mx, my);
+          if (clickedLink) {
+            this.network.setSelectedLink(clickedLink);
+          } else {
+            this.network.setSelectedNode(null);
+            this.network.setSelectedLink(null);
+            this._createNode(mx, my);
+          }
         }
-      } else if (button === 2) { // Right click
+      } else if (button === 2) {
         if (clickedNode) {
           this.isCreatingLink = true;
           this.linkStartNode = clickedNode;
           this.linkTargetNode = null;
         } else {
           this.network.setSelectedNode(null);
+          this.network.setSelectedLink(null);
         }
       }
     } catch (error) {
-      console.error("ERROR in handleMousePressed:", error);
+      console.error('ERROR in handleMousePressed:', error);
     }
-    return false; // Prevent default behavior
+    return false;
   }
 
   handleMouseDragged(mx, my) {
     try {
       if (this.isCreatingLink && this.linkStartNode) {
-        // Update link creation preview 
-        // check for target node under cursor
         let targetNode = null;
-        for (let node of this.network.nodes) {
+        for (const node of this.network.nodes) {
           if (node !== this.linkStartNode) {
-            let clickable = node.getComponent(ClickableComponent);
+            const clickable = node.getComponent(ClickableComponent);
             if (clickable && clickable.contains(mx, my)) {
               targetNode = node;
               break;
@@ -80,7 +76,6 @@ class InteractionController {
         return;
       }
 
-      // Only start dragging if the initial mouse down was on a node
       if (this.nodePressedForDrag && !this.isDraggingNode) {
         this.network.setDragging(true);
         this.network.setDraggedNode(this.nodePressedForDrag);
@@ -89,7 +84,7 @@ class InteractionController {
       }
 
       if (this.isDraggingNode && this.draggedNode) {
-        let transform = this.draggedNode.getComponent(TransformComponent);
+        const transform = this.draggedNode.getComponent(TransformComponent);
         if (transform) {
           transform.x = mx;
           transform.y = my;
@@ -98,75 +93,108 @@ class InteractionController {
         }
       }
     } catch (error) {
-      console.error("ERROR in handleMouseDragged:", error);
+      console.error('ERROR in handleMouseDragged:', error);
     }
   }
 
   handleMouseReleased() {
     try {
       if (this.isCreatingLink && this.linkStartNode && this.linkTargetNode) {
-        this.createLink(this.linkStartNode, this.linkTargetNode);
-      } else if (this.isCreatingLink) {
-        // Cancelling link creation - released on empty space
+        this._createLink(this.linkStartNode, this.linkTargetNode);
       }
-
-      // Reset all
+      this._cancelLinkCreation();
       this.network.setDragging(false);
       this.network.setDraggedNode(null);
       this.isDraggingNode = false;
       this.draggedNode = null;
-      this.isCreatingLink = false;
-      this.linkStartNode = null;
-      this.linkTargetNode = null;
     } catch (error) {
-      console.error("ERROR in handleMouseReleased:", error);
+      console.error('ERROR in handleMouseReleased:', error);
     }
   }
 
-  createNode(x, y) {
+  getLinkTargetNode() { return this.linkTargetNode; }
+  getLinkStartNode() { return this.linkStartNode; }
+  isCreatingLinkMode() { return this.isCreatingLink; }
+
+  _handleKeyDown(e) {
+    if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      const selected = this.network.getSelectedNode();
+      const selectedLink = this.network.getSelectedLink();
+      if (selected) {
+        this.network.removeNode(selected);
+      } else if (selectedLink) {
+        this.network.removeLink(selectedLink);
+      }
+    }
+
+    if (e.key === 'Escape') {
+      if (this.isCreatingLink) {
+        this._cancelLinkCreation();
+      } else {
+        this.network.setSelectedNode(null);
+        this.network.setSelectedLink(null);
+      }
+    }
+  }
+
+  _cancelLinkCreation() {
+    this.isCreatingLink = false;
+    this.linkStartNode = null;
+    this.linkTargetNode = null;
+  }
+
+  _getNodeAt(mx, my) {
+    for (const node of this.network.nodes) {
+      const clickable = node.getComponent(ClickableComponent);
+      if (clickable && clickable.contains(mx, my)) return node;
+    }
+    return null;
+  }
+
+  _getLinkAt(mx, my) {
+    for (const link of this.network.links) {
+      const t1 = link.source.getComponent(TransformComponent);
+      const t2 = link.target.getComponent(TransformComponent);
+      if (t1 && t2 && this._pointToSegmentDist(mx, my, t1.x, t1.y, t2.x, t2.y) < 8) {
+        return link;
+      }
+    }
+    return null;
+  }
+
+  _pointToSegmentDist(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+    const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lenSq));
+    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+  }
+
+  _createNode(x, y) {
     try {
-      const id = Math.max(...this.network.nodes.map(n => n.id), 0) + 1;
-      const name = `Node ${id}`;
-      const size = 45;
-      const color = '#3498db';
-      const node = new StandardNode(id, name, size, color, x, y);
+      const id = this.network.nextNodeId;
+      const node = new StandardNode(id, `Node ${id}`, 45, '#3498db', x, y);
       this.network.addNode(node);
       this.network.setSelectedNode(node);
     } catch (error) {
-      console.error("ERROR in createNode:", error);
+      console.error('ERROR in _createNode:', error);
     }
   }
 
-  createLink(node1, node2) {
+  _createLink(node1, node2) {
     try {
-      // Check if link already exists
-      const existingLink = this.network.links.find(link =>
-        (link.source === node1 && link.target === node2) ||
-        (link.source === node2 && link.target === node1)
+      const exists = this.network.links.some(l =>
+        (l.source === node1 && l.target === node2) ||
+        (l.source === node2 && l.target === node1)
       );
-      if (existingLink) {
-        return;
-      }
-
-      const distance = 100;
-      const force = 0.3;
-      const color = '#7f8c8d';
-      const link = new SpringLink(node1, node2, distance, force, color);
+      if (exists) return;
+      const link = new SpringLink(node1, node2, 100, 0.3, '#7f8c8d');
       this.network.addLink(link);
     } catch (error) {
-      console.error("ERROR in createLink:", error);
+      console.error('ERROR in _createLink:', error);
     }
-  }
-
-  getLinkTargetNode() {
-    return this.linkTargetNode;
-  }
-
-  getLinkStartNode() {
-    return this.linkStartNode;
-  }
-
-  isCreatingLinkMode() {
-    return this.isCreatingLink;
   }
 }

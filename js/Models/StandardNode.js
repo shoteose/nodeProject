@@ -14,7 +14,7 @@ class StandardNode extends IEntity {
   }
 
   toString() {
-    return `StandardNode(id: ${this.id}, name: ${this.getComponent(RenderComponent).name})`;
+    return `StandardNode(id: ${this.id}, name: ${this.getComponent(RenderComponent).nome})`;
   }
 }
 

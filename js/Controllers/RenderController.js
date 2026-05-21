@@ -28,19 +28,23 @@ class RenderController {
     text(renderComponent.nome, transformComponent.x, transformComponent.y);
   }
 
-  drawLink(link, sourceTransform, targetTransform) {
-    stroke(link.cor);
-    strokeWeight(2);
+  drawLink(link, sourceTransform, targetTransform, isSelected = false) {
+    if (isSelected) {
+      stroke('#f39c12');
+      strokeWeight(4);
+    } else {
+      stroke(link.cor);
+      strokeWeight(2);
+    }
     line(sourceTransform.x, sourceTransform.y, targetTransform.x, targetTransform.y);
   }
 
-  drawLinkPreview(startNode, mouseX, mouseY) {
+  drawLinkPreview(startNode, mx, my) {
     if (!startNode) return;
     const transform = startNode.getComponent(TransformComponent);
     if (!transform) return;
-
     stroke('#f39c12');
     strokeWeight(3);
-    line(transform.x, transform.y, mouseX, mouseY);
+    line(transform.x, transform.y, mx, my);
   }
 }
