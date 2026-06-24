@@ -1,6 +1,22 @@
 class RenderController {
   clearBackground() {
-    background(30);
+    background(20);
+    const spacing = 38;
+    stroke(40);
+    strokeWeight(2);
+    for (let x = spacing; x < width; x += spacing) {
+      for (let y = spacing; y < height; y += spacing) {
+        point(x, y);
+      }
+    }
+  }
+
+  drawWatermark(img) {
+    if (!img) return;
+    const s = 64;
+    tint(255, 70);
+    image(img, width - s - 14, height - s - 14, s, s);
+    noTint();
   }
 
   drawNode(renderComponent, transformComponent, isSelected, isLinkTarget = false) {

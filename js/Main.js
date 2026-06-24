@@ -5,6 +5,11 @@ let interactionController;
 let uiManager;
 let networkSerializer;
 let effectController;
+let bgImage;
+
+function preload() {
+  bgImage = loadImage('assets/logo.svg');
+}
 
 function getCanvasDimensions() {
   const gameArea = document.querySelector('.game-area');
@@ -57,6 +62,8 @@ function draw() {
   networkManager.nodes.forEach(node => {
     node.draw(renderController, node === selectedNode, node === linkTarget);
   });
+
+  renderController.drawWatermark(bgImage);
 
   uiManager.updateInspector();
   uiManager.updateNetworkStats();
