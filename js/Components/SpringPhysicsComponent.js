@@ -11,6 +11,8 @@ class SpringPhysicsComponent extends IComponent {
     const sourceTransform = connectionComponent.source.getComponent(TransformComponent);
     const targetTransform = connectionComponent.target.getComponent(TransformComponent);
     if (!sourceTransform || !targetTransform) return 0;
+
+    // tension = (currentDistance - restDistance) / max(restDistance, 1)
     return (Math.hypot(targetTransform.x - sourceTransform.x, targetTransform.y - sourceTransform.y) - this.distancia) / Math.max(this.distancia, 1);
   }
 
@@ -23,6 +25,8 @@ class SpringPhysicsComponent extends IComponent {
 
     const deltaX = targetTransform.x - sourceTransform.x;
     const deltaY = targetTransform.y - sourceTransform.y;
+    
+    // Calculate the distance between the source and target nodes
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     if (distance === 0) return;
 
@@ -30,6 +34,7 @@ class SpringPhysicsComponent extends IComponent {
     const forceX = deltaX * forceMultiplier;
     const forceY = deltaY * forceMultiplier;
 
+    // Apply forces to the source and target nodes, unless they are selected or dragged
     if (selectedNode !== connectionComponent.source && draggedNode !== connectionComponent.source) {
       sourceTransform.vx += forceX;
       sourceTransform.vy += forceY;

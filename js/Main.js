@@ -28,6 +28,7 @@ function setup() {
 
   document.addEventListener('contextmenu', e => e.preventDefault());
 
+  document.addEventListener('keydown', (e) => interactionController.handleKeyDown(e));
   const gameArea = document.querySelector('.game-area');
   if (gameArea) {
     new ResizeObserver(() => {
@@ -60,6 +61,8 @@ function draw() {
   uiManager.updateInspector();
   uiManager.updateNetworkStats();
 }
+
+
 
 // --- p5.js events ---
 function mousePressed(event) {

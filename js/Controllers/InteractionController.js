@@ -9,7 +9,6 @@ class InteractionController {
     this.linkTargetNode = null;
     this.nodePressedForDrag = null;
 
-    document.addEventListener('keydown', (e) => this.handleKeyDown(e));
   }
 
   handleMousePressed(mouseXPosition, mouseYPosition, button, ctrlKey = false) {
