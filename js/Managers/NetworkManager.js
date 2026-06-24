@@ -1,66 +1,86 @@
 class NetworkManager {
   constructor() {
-    console.log("NetworkManager constructor called");
     this.nodes = [];
     this.links = [];
     this.selectedNode = null;
+    this.selectedLink = null;
     this.isDragging = false;
     this.draggedNode = null;
     this.friction = 0.15;
+    this.nextNodeId = 1;
+    this.nextLinkId = 1;
+    this.saveVersion = 1;
   }
 
   addNode(node) {
-    console.log("addNode called with node:", node.id);
     this.nodes.push(node);
-    console.log("Total nodes now:", this.nodes.length);
+    this.nextNodeId = Math.max(this.nextNodeId, node.id + 1);
   }
 
   removeNode(nodeToRemove) {
     if (!nodeToRemove) return;
+    this.links = this.links.filter(link => {
+      const connectionComponent = link.getComponent(ConnectionComponent);
+      return !connectionComponent || (connectionComponent.source !== nodeToRemove && connectionComponent.target !== nodeToRemove);
+    });
+    this.nodes = this.nodes.filter(node => node !== nodeToRemove);
+    if (this.selectedNode === nodeToRemove) this.selectedNode = null;
+  }
 
-    this.links = this.links.filter(link => link.source !== nodeToRemove && link.target !== nodeToRemove);
-
-    this.nodes = this.nodes.filter(n => n !== nodeToRemove);
-
-    if (this.selectedNode === nodeToRemove) {
-      this.selectedNode = null;
-    }
+  removeLink(linkToRemove) {
+    if (!linkToRemove) return;
+    this.links = this.links.filter(l => l !== linkToRemove);
+    if (this.selectedLink === linkToRemove) this.selectedLink = null;
   }
 
   addLink(link) {
-    console.log("addLink called between:", link.source.id, "and", link.target.id);
     this.links.push(link);
-    console.log("Total links now:", this.links.length);
+    this.nextLinkId++;
+  }
+
+  clearNetwork() {
+    this.nodes = [];
+    this.links = [];
+    this.selectedNode = null;
+    this.selectedLink = null;
+    this.isDragging = false;
+    this.draggedNode = null;
+    this.nextNodeId = 1;
+    this.nextLinkId = 1;
+    this.saveVersion = 1;
   }
 
   getNodeById(id) {
-    const node = this.nodes.find(n => n.id === id);
-    console.log("getNodeById called for id:", id, "found:", node ? node.id : "null");
-    return node;
+    return this.nodes.find(node => node.id === id) ?? null;
   }
 
   setSelectedNode(node) {
-    console.log("setSelectedNode called with:", node ? node.id : "null");
     this.selectedNode = node;
+    if (node) this.selectedLink = null;
   }
 
   getSelectedNode() {
-    //console.log("getSelectedNode called, returning:", this.selectedNode ? this.selectedNode.id : "null");
     return this.selectedNode;
   }
 
+  setSelectedLink(link) {
+    this.selectedLink = link;
+    if (link) this.selectedNode = null;
+  }
+
+  getSelectedLink() {
+    return this.selectedLink;
+  }
+
   setDragging(isDragging) {
-    console.log("setDragging called with:", isDragging);
     this.isDragging = isDragging;
   }
 
   getDragging() {
-    console.log("getDragging called, returning:", this.isDragging);
     return this.isDragging;
   }
 
   setDraggedNode(node) {
-    console.log("setDraggedNode called with:", node ? node.id : "null");
     this.draggedNode = node;
   }
 
@@ -68,8 +88,3 @@ class NetworkManager {
     return this.draggedNode;
   }
 }
-
-
-
-
-
