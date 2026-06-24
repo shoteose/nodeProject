@@ -5,11 +5,11 @@ class SpringRenderComponent extends IComponent {
   }
 
   draw(renderer, isSelected = false) {
-    const conn = this.entity.getComponent(ConnectionComponent);
-    const phys = this.entity.getComponent(SpringPhysicsComponent);
-    if (!conn || !phys) return;
-    const src = conn.source.getComponent(TransformComponent);
-    const tgt = conn.target.getComponent(TransformComponent);
-    if (src && tgt) renderer.drawLink(this.cor, phys.tension, src, tgt, isSelected);
+    const connectionComponent = this.entity.getComponent(ConnectionComponent);
+    const springPhysicsComponent = this.entity.getComponent(SpringPhysicsComponent);
+    if (!connectionComponent || !springPhysicsComponent) return;
+    const sourceTransform = connectionComponent.source.getComponent(TransformComponent);
+    const targetTransform = connectionComponent.target.getComponent(TransformComponent);
+    if (sourceTransform && targetTransform) renderer.drawLink(this.cor, springPhysicsComponent.tension, sourceTransform, targetTransform, isSelected);
   }
 }

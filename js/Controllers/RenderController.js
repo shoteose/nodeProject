@@ -28,90 +28,58 @@ class RenderController {
     text(renderComponent.nome, transformComponent.x, transformComponent.y);
   }
 
-  drawLink(cor, tension, src, tgt, isSelected = false) {
+  drawLink(cor, tension, sourceTransform, targetTransform, isSelected = false) {
     if (isSelected) {
       stroke('#f39c12');
       strokeWeight(4);
-      line(src.x, src.y, tgt.x, tgt.y);
+      line(sourceTransform.x, sourceTransform.y, targetTransform.x, targetTransform.y);
     } else {
-      const t = Math.max(-1, Math.min(1, tension));
-      const absT = Math.abs(t);
-      const c = this.tensionColor(cor, t);
+      const clampedTension = Math.max(-1, Math.min(1, tension));
+      const absoluteTension = Math.abs(clampedTension);
+      const linkColor = this.tensionColor(cor, clampedTension);
 
-      if (absT > 0.4) {
-        const intensity = (absT - 0.4) / 0.6;
-        const gc = color(red(c), green(c), blue(c));
-        gc.setAlpha(intensity * 35);
-        stroke(gc);
-        strokeWeight(14 + intensity * 8);
-        line(src.x, src.y, tgt.x, tgt.y);
-        gc.setAlpha(intensity * 60);
-        stroke(gc);
-        strokeWeight(7 + intensity * 4);
-        line(src.x, src.y, tgt.x, tgt.y);
-      }
-
-      stroke(c);
-      strokeWeight(2 + absT * 3);
-      line(src.x, src.y, tgt.x, tgt.y);
+      stroke(linkColor);
+      strokeWeight(2 + absoluteTension * 3);
+      line(sourceTransform.x, sourceTransform.y, targetTransform.x, targetTransform.y);
     }
   }
 
-  drawLinkPreview(startNode, mx, my) {
+  drawLinkPreview(startNode, mouseXPosition, mouseYPosition) {
     if (!startNode) return;
     const transform = startNode.getComponent(TransformComponent);
     if (!transform) return;
     stroke('#f39c12');
     strokeWeight(3);
-    line(transform.x, transform.y, mx, my);
-  }
-
-  drawTrail(component) {
-    noStroke();
-    for (const p of component.points) {
-      fill(200, 210, 255, p.alpha);
-      circle(p.x, p.y, p.size * 2);
-    }
+    line(transform.x, transform.y, mouseXPosition, mouseYPosition);
   }
 
   drawPulse(component, transform) {
     noFill();
     for (const ring of component.rings) {
-      const c = color(ring.cor);
-      c.setAlpha(ring.alpha);
-      stroke(c);
+      const ringColor = color(ring.cor);
+      ringColor.setAlpha(ring.alpha);
+      stroke(ringColor);
       strokeWeight(2);
       circle(transform.x, transform.y, ring.radius * 2);
     }
   }
 
-  drawTensionParticles(component) {
-    noStroke();
-    for (const p of component.particles) {
-      const c = color(p.cor);
-      c.setAlpha(p.alpha);
-      fill(c);
-      circle(p.x, p.y, 4);
-    }
-  }
-
   drawGlow(component, transform, renderComponent) {
-    const speed = Math.hypot(transform.vx, transform.vy);
-    const pulse = Math.min(speed * 8 + component.tensionInput * 50, 60);
-    noStroke();
-    const gc = color(renderComponent.cor);
-    gc.setAlpha(30 + pulse * 0.4); fill(gc);
-    circle(transform.x, transform.y, renderComponent.tamanho * 2 + 36);
-    gc.setAlpha(30 + pulse * 0.7); fill(gc);
-    circle(transform.x, transform.y, renderComponent.tamanho * 2 + 22);
-    gc.setAlpha(30 + pulse);       fill(gc);
-    circle(transform.x, transform.y, renderComponent.tamanho * 2 + 10);
+    if (!component.enabled) return;
+    const ringRadius = renderComponent.tamanho * 2 + 42;
+    const glowColor = color(renderComponent.cor);
+
+    noFill();
+    glowColor.setAlpha(38);
+    stroke(glowColor);
+    strokeWeight(20);
+    circle(transform.x, transform.y, ringRadius);
   }
 
   tensionColor(baseCor, tension) {
-    const base = color(baseCor);
-    if (tension > 0) return lerpColor(base, color('#e74c3c'), Math.min(tension * 1.5, 1));
-    if (tension < 0) return lerpColor(base, color('#3498db'), Math.min(-tension * 1.5, 1));
-    return base;
+    const baseColor = color(baseCor);
+    if (tension > 0) return lerpColor(baseColor, color('#e74c3c'), Math.min(tension * 1.5, 1));
+    if (tension < 0) return lerpColor(baseColor, color('#3498db'), Math.min(-tension * 1.5, 1));
+    return baseColor;
   }
 }

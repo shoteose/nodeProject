@@ -4,7 +4,6 @@ class StandardNode extends IEntity {
     this.addComponent(new TransformComponent(x, y));
     this.addComponent(new PhysicsComponent());
     this.addComponent(new GlowEffectComponent());
-    this.addComponent(new TrailEffectComponent());
     this.addComponent(new RenderComponent(nome, tamanho, cor));
     this.addComponent(new PulseEffectComponent());
     this.addComponent(new ClickableComponent());

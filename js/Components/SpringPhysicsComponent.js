@@ -6,37 +6,37 @@ class SpringPhysicsComponent extends IComponent {
   }
 
   get tension() {
-    const conn = this.entity.getComponent(ConnectionComponent);
-    if (!conn) return 0;
-    const t1 = conn.source.getComponent(TransformComponent);
-    const t2 = conn.target.getComponent(TransformComponent);
-    if (!t1 || !t2) return 0;
-    return (Math.hypot(t2.x - t1.x, t2.y - t1.y) - this.distancia) / Math.max(this.distancia, 1);
+    const connectionComponent = this.entity.getComponent(ConnectionComponent);
+    if (!connectionComponent) return 0;
+    const sourceTransform = connectionComponent.source.getComponent(TransformComponent);
+    const targetTransform = connectionComponent.target.getComponent(TransformComponent);
+    if (!sourceTransform || !targetTransform) return 0;
+    return (Math.hypot(targetTransform.x - sourceTransform.x, targetTransform.y - sourceTransform.y) - this.distancia) / Math.max(this.distancia, 1);
   }
 
   update(selectedNode, draggedNode = null) {
-    const conn = this.entity.getComponent(ConnectionComponent);
-    if (!conn) return;
-    const src = conn.source.getComponent(TransformComponent);
-    const tgt = conn.target.getComponent(TransformComponent);
-    if (!src || !tgt) return;
+    const connectionComponent = this.entity.getComponent(ConnectionComponent);
+    if (!connectionComponent) return;
+    const sourceTransform = connectionComponent.source.getComponent(TransformComponent);
+    const targetTransform = connectionComponent.target.getComponent(TransformComponent);
+    if (!sourceTransform || !targetTransform) return;
 
-    const dx = tgt.x - src.x;
-    const dy = tgt.y - src.y;
-    const d = Math.sqrt(dx * dx + dy * dy);
-    if (d === 0) return;
+    const deltaX = targetTransform.x - sourceTransform.x;
+    const deltaY = targetTransform.y - sourceTransform.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    if (distance === 0) return;
 
-    const fm = ((d - this.distancia) * this.forca * 0.05) / d;
-    const fx = dx * fm;
-    const fy = dy * fm;
+    const forceMultiplier = ((distance - this.distancia) * this.forca * 0.05) / distance;
+    const forceX = deltaX * forceMultiplier;
+    const forceY = deltaY * forceMultiplier;
 
-    if (selectedNode !== conn.source && draggedNode !== conn.source) {
-      src.vx += fx;
-      src.vy += fy;
+    if (selectedNode !== connectionComponent.source && draggedNode !== connectionComponent.source) {
+      sourceTransform.vx += forceX;
+      sourceTransform.vy += forceY;
     }
-    if (selectedNode !== conn.target && draggedNode !== conn.target) {
-      tgt.vx -= fx;
-      tgt.vy -= fy;
+    if (selectedNode !== connectionComponent.target && draggedNode !== connectionComponent.target) {
+      targetTransform.vx -= forceX;
+      targetTransform.vy -= forceY;
     }
   }
 }

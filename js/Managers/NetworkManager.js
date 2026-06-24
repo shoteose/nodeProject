@@ -20,10 +20,10 @@ class NetworkManager {
   removeNode(nodeToRemove) {
     if (!nodeToRemove) return;
     this.links = this.links.filter(link => {
-      const conn = link.getComponent(ConnectionComponent);
-      return !conn || (conn.source !== nodeToRemove && conn.target !== nodeToRemove);
+      const connectionComponent = link.getComponent(ConnectionComponent);
+      return !connectionComponent || (connectionComponent.source !== nodeToRemove && connectionComponent.target !== nodeToRemove);
     });
-    this.nodes = this.nodes.filter(n => n !== nodeToRemove);
+    this.nodes = this.nodes.filter(node => node !== nodeToRemove);
     if (this.selectedNode === nodeToRemove) this.selectedNode = null;
   }
 
@@ -51,7 +51,7 @@ class NetworkManager {
   }
 
   getNodeById(id) {
-    return this.nodes.find(n => n.id === id) ?? null;
+    return this.nodes.find(node => node.id === id) ?? null;
   }
 
   setSelectedNode(node) {

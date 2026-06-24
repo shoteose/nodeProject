@@ -45,52 +45,53 @@ class NetworkSerializer {
   // ── Serialize ───────────────────────────────────────────
 
   serializeTxt() {
-    const nm = this.networkManager;
-    let data = '1.1\n';
-    data += nm.saveVersion + '\n';
-    data += nm.friction + '\n';
-    data += nm.nodes.length + '\n';
-    for (const node of nm.nodes) {
-      const t = node.getComponent(TransformComponent);
-      const r = node.getComponent(RenderComponent);
-      const g = node.getComponent(GlowEffectComponent);
-      if (t && r) data += `${node.id};${r.nome};${r.tamanho};${r.cor};${t.x};${t.y};${g && g.enabled ? 1 : 0}\n`;
+    const networkManager = this.networkManager;
+    let data = networkManager.saveVersion + '\n';
+    data += networkManager.friction + '\n';
+    data += networkManager.nodes.length + '\n';
+    for (const node of networkManager.nodes) {
+      const transformComponent = node.getComponent(TransformComponent);
+      const renderComponent = node.getComponent(RenderComponent);
+      const glowEffectComponent = node.getComponent(GlowEffectComponent);
+      if (transformComponent && renderComponent) data += `${node.id};${renderComponent.nome};${renderComponent.tamanho};${renderComponent.cor};${transformComponent.x};${transformComponent.y};${glowEffectComponent && glowEffectComponent.enabled ? 1 : 0}\n`;
     }
-    data += nm.links.length + '\n';
-    for (const link of nm.links) {
-      const conn = link.getComponent(ConnectionComponent);
-      const phys = link.getComponent(SpringPhysicsComponent);
-      if (conn && phys) data += `${conn.source.id};${conn.target.id};${phys.distancia};${phys.forca}\n`;
+    data += networkManager.links.length + '\n';
+    for (const link of networkManager.links) {
+      const connectionComponent = link.getComponent(ConnectionComponent);
+      const springPhysicsComponent = link.getComponent(SpringPhysicsComponent);
+      if (connectionComponent && springPhysicsComponent) data += `${connectionComponent.source.id};${connectionComponent.target.id};${springPhysicsComponent.distancia};${springPhysicsComponent.forca}\n`;
     }
     return data;
   }
 
   serializeJson() {
-    const nm = this.networkManager;
-    const nodes = nm.nodes.map(node => {
-      const t = node.getComponent(TransformComponent);
-      const r = node.getComponent(RenderComponent);
-      const g = node.getComponent(GlowEffectComponent);
-      return { id: node.id, name: r.nome, size: r.tamanho, color: r.cor, x: t.x, y: t.y, glow: g ? g.enabled : false };
+    const networkManager = this.networkManager;
+    const nodes = networkManager.nodes.map(node => {
+      const transformComponent = node.getComponent(TransformComponent);
+      const renderComponent = node.getComponent(RenderComponent);
+      const glowEffectComponent = node.getComponent(GlowEffectComponent);
+      return { id: node.id, name: renderComponent.nome, size: renderComponent.tamanho, color: renderComponent.cor, x: transformComponent.x, y: transformComponent.y, glow: glowEffectComponent ? glowEffectComponent.enabled : false };
     });
-    const links = nm.links.map(link => {
-      const conn = link.getComponent(ConnectionComponent);
-      const phys = link.getComponent(SpringPhysicsComponent);
-      const rend = link.getComponent(SpringRenderComponent);
+
+    const links = networkManager.links.map(link => {
+      const connectionComponent = link.getComponent(ConnectionComponent);
+      const springPhysicsComponent = link.getComponent(SpringPhysicsComponent);
+      const springRenderComponent = link.getComponent(SpringRenderComponent);
       return {
-        sourceId: conn.source.id,
-        targetId: conn.target.id,
-        distance: phys.distancia,
-        force: phys.forca,
-        color: rend.cor
+        sourceId: connectionComponent.source.id,
+        targetId: connectionComponent.target.id,
+        distance: springPhysicsComponent.distancia,
+        force: springPhysicsComponent.forca,
+        color: springRenderComponent.cor
       };
+
     });
+    
     const payload = {
-      version: '2.0',
       state: {
-        friction: nm.friction,
-        nextNodeId: nm.nextNodeId,
-        saveVersion: nm.saveVersion
+        friction: networkManager.friction,
+        nextNodeId: networkManager.nextNodeId,
+        saveVersion: networkManager.saveVersion
       },
       nodes,
       links
@@ -103,20 +104,15 @@ class NetworkSerializer {
   deserializeNetwork(text) {
     const trimmed = text.trim();
     if (trimmed.startsWith('{')) {
-      this.parseV2(JSON.parse(trimmed));
+      this.parseJson(JSON.parse(trimmed));
     } else {
-      this.parseV1(trimmed.split('\n'));
+      this.parseTxt(trimmed.split('\n'));
     }
   }
 
-  parseV1(lines) {
+  parseTxt(lines) {
     let i = 0;
-    const version = lines[i++];
-    if (version !== '1.0' && version !== '1.1') throw new Error(`Versão TXT não suportada: ${version}`);
-
-    let saveVersion = 0;
-    if (version === '1.1') saveVersion = parseInt(lines[i++]);
-
+    const saveVersion = parseInt(lines[i++]);
     const friction = parseFloat(lines[i++]);
     this.resetNetwork(friction);
     this.networkManager.saveVersion = saveVersion;
@@ -125,11 +121,11 @@ class NetworkSerializer {
     for (let n = 0; n < nodeCount; n++) {
       const parts = lines[i++].split(';');
       if (parts.length < 6) throw new Error('Formato inválido: linha de node incompleta');
-      const [id, nome, tamanho, cor, x, y, glowStr] = parts;
-      const node = new StandardNode(parseInt(id), nome, parseFloat(tamanho), cor, parseFloat(x), parseFloat(y));
-      if (glowStr === '1') {
-        const g = node.getComponent(GlowEffectComponent);
-        if (g) g.enabled = true;
+      const [id, name, size, color, x, y, glowFlag] = parts;
+      const node = new StandardNode(parseInt(id), name, parseFloat(size), color, parseFloat(x), parseFloat(y));
+      if (glowFlag === '1') {
+        const glowEffectComponent = node.getComponent(GlowEffectComponent);
+        if (glowEffectComponent) glowEffectComponent.enabled = true;
       }
       this.networkManager.addNode(node);
     }
@@ -147,7 +143,7 @@ class NetworkSerializer {
     }
   }
 
-  parseV2(obj) {
+  parseJson(obj) {
     if (!obj.state || !Array.isArray(obj.nodes) || !Array.isArray(obj.links))
       throw new Error('JSON inválido: campos obrigatórios em falta (state, nodes, links)');
 
@@ -161,19 +157,20 @@ class NetworkSerializer {
     }
 
     for (const n of obj.nodes) {
-      const node = new StandardNode(n.id, n.name, n.size, n.color, n.x, n.y);
-      if (n.glow) {
-        const g = node.getComponent(GlowEffectComponent);
-        if (g) g.enabled = true;
+      const nodeData = n;
+      const node = new StandardNode(nodeData.id, nodeData.name, nodeData.size, nodeData.color, nodeData.x, nodeData.y);
+      if (nodeData.glow) {
+        const glowEffectComponent = node.getComponent(GlowEffectComponent);
+        if (glowEffectComponent) glowEffectComponent.enabled = true;
       }
       this.networkManager.addNode(node);
     }
 
-    for (const l of obj.links) {
-      const source = this.networkManager.getNodeById(l.sourceId);
-      const target = this.networkManager.getNodeById(l.targetId);
+    for (const linkData of obj.links) {
+      const source = this.networkManager.getNodeById(linkData.sourceId);
+      const target = this.networkManager.getNodeById(linkData.targetId);
       if (source && target) {
-        this.networkManager.addLink(new SpringLink(this.networkManager.nextLinkId, source, target, l.distance, l.force, l.color || '#7f8c8d'));
+        this.networkManager.addLink(new SpringLink(this.networkManager.nextLinkId, source, target, linkData.distance, linkData.force, linkData.color || '#7f8c8d'));
       }
     }
   }

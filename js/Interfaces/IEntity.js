@@ -21,7 +21,7 @@ class IEntity {
   }
 
   update(...args) {
-    for (const c of this.updatables) c.update(...args);
+    for (const updatableComponent of this.updatables) updatableComponent.update(...args);
   }
 
   draw(renderController, ...args) {

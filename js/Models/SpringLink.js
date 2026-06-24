@@ -4,6 +4,5 @@ class SpringLink extends IEntity {
     this.addComponent(new ConnectionComponent(sourceNode, targetNode));
     this.addComponent(new SpringPhysicsComponent(distancia, forca));
     this.addComponent(new SpringRenderComponent(cor));
-    this.addComponent(new TensionEffectComponent());
   }
 }
