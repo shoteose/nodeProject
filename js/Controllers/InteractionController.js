@@ -148,22 +148,10 @@ class InteractionController {
 
   getLinkAt(mouseXPosition, mouseYPosition) {
     for (const link of this.network.links) {
-      const connectionComponent = link.getComponent(ConnectionComponent);
-      if (!connectionComponent) continue;
-      const sourceTransform = connectionComponent.source.getComponent(TransformComponent);
-      const targetTransform = connectionComponent.target.getComponent(TransformComponent);
-      if (sourceTransform && targetTransform && this.pointToSegmentDist(mouseXPosition, mouseYPosition, sourceTransform.x, sourceTransform.y, targetTransform.x, targetTransform.y) < 8) return link;
+      const clickable = link.getComponent(LinkClickableComponent);
+      if (clickable && clickable.contains(mouseXPosition, mouseYPosition)) return link;
     }
     return null;
-  }
-
-  pointToSegmentDist(pointX, pointY, x1, y1, x2, y2) {
-    const deltaX = x2 - x1;
-    const deltaY = y2 - y1;
-    const segmentLengthSquared = deltaX * deltaX + deltaY * deltaY;
-    if (segmentLengthSquared === 0) return Math.hypot(pointX - x1, pointY - y1);
-    const projectionFactor = Math.max(0, Math.min(1, ((pointX - x1) * deltaX + (pointY - y1) * deltaY) / segmentLengthSquared));
-    return Math.hypot(pointX - (x1 + projectionFactor * deltaX), pointY - (y1 + projectionFactor * deltaY));
   }
 
   createNode(x, y) {
