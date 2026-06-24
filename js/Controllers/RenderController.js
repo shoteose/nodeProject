@@ -53,6 +53,15 @@ class RenderController {
     line(transform.x, transform.y, mouseXPosition, mouseYPosition);
   }
 
+  drawRipple(effect) {
+    noFill();
+    strokeWeight(1);
+    for (const ripple of effect.particles) {
+      stroke(220, 230, 255, ripple.alpha);
+      circle(ripple.x, ripple.y, ripple.radius * 2);
+    }
+  }
+
   drawPulse(component, transform) {
     noFill();
     for (const ring of component.rings) {

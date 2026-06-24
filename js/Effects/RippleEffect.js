@@ -17,12 +17,7 @@ class RippleEffect extends IGlobalEffect {
     }
   }
 
-  draw() {
-    noFill();
-    for (const ripple of this.particles) {
-      stroke(220, 230, 255, ripple.alpha);
-      strokeWeight(1);
-      circle(ripple.x, ripple.y, ripple.radius * 2);
-    }
+  draw(renderer) {
+    renderer.drawRipple(this);
   }
 }

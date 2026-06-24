@@ -11,7 +11,7 @@ class EffectController {
     this.ripple.update();
   }
 
-  draw() {
-    this.ripple.draw();
+  draw(renderer) {
+    this.ripple.draw(renderer);
   }
 }

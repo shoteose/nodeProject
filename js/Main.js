@@ -43,7 +43,7 @@ function draw() {
   renderController.clearBackground();
 
   effectController.update();
-  effectController.draw();
+  effectController.draw(renderController);
 
   const selectedLink = networkManager.getSelectedLink();
   networkManager.links.forEach(link => link.draw(renderController, link === selectedLink));
